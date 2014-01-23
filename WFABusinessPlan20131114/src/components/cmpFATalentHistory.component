@@ -1,0 +1,101 @@
+<apex:component controller="clsFATalentHistory">
+<apex:attribute name="strAccountId" description="AccountId for this record" type="String" required="true" assignTo="{!strAccountId}" />
+
+<script type="text/javascript">
+    
+    if (screen.width == 1920) {
+    
+    	$(document).ready(function() {
+        $('.fixme').fixheadertable({
+        height: 365,
+        width:1600,
+        colratio: [75,150,100,100,125,1030],
+        sortable: false,
+        sortedColId: 2,
+        sortType: ['string','string','date','string','string','string','string'],
+        dateFormat: 'mm/dd/yyyy'
+        });
+    });
+    
+	}
+	
+	else if (screen.width == 1600) {
+    
+    	$(document).ready(function() {
+        $('.fixme').fixheadertable({
+        height: 365,
+        width:1300,
+        colratio: [75,150,100,100,125,730]
+        });
+    });
+    
+	}
+	
+	else if (screen.width == 1280) {
+    
+    	$(document).ready(function() {
+        $('.fixme').fixheadertable({
+        height: 365,
+        width:950,
+        colratio: [75,150,100,100,125,410]
+        });
+    });
+    
+	}
+	
+	else if (screen.width == 1024) {
+    
+    	$(document).ready(function() {
+        $('.fixme').fixheadertable({
+        height: 365,
+        width:720,
+        colratio: [75,150,100,100,125,160]
+        });
+    });
+    
+	}
+    
+</script> 
+   
+    <table class="fixme"> 
+        <thead> 
+            <tr>
+                <th>Channel</th>
+                <th>Effort</th>
+                <th>Due Date</th>
+                <th>Subject</th>    
+                <th>Assigned To</th>    
+                <th>Comments</th>               
+             </tr>  
+        </thead>
+        <tbody>         
+            <apex:repeat value="{!OpportunityHistory}" var="ThisOpportunity">
+                <apex:repeat value="{!ThisOpportunity.ActivityHistories}" var="ThisOpportunityHistory">
+                    <tr>
+                        <td>
+                        	<apex:outputText value="{!ThisOpportunity.Channel__c}"/>
+                        </td>
+                        <td>
+                        	<a href="/{!ThisOpportunity.Id}" target="_blank">{!ThisOpportunity.Name}</a>
+                        </td>
+                        <td>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!ThisOpportunityHistory.ActivityDate}" /> 
+                            </apex:outputText>
+                        </td>
+                        <td>
+                        	<a href="/{!ThisOpportunityHistory.Id}" target="_blank">{!ThisOpportunityHistory.Subject}</a>
+                        </td>
+                        <td>
+                        	<apex:outputText value="{!ThisOpportunityHistory.Owner.Name}"/>
+                        </td>
+                        <td>
+                        	<apex:outputText value="{!ThisOpportunityHistory.Description}"/>
+                        </td>
+                    </tr>
+            </apex:repeat>
+            </apex:repeat>
+        </tbody>
+    </table>
+
+</apex:component>

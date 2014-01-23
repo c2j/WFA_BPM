@@ -1,0 +1,371 @@
+<apex:page standardController="BoM_Plan__c" extensions="BPMarketComplexPlanCon" action="{!init}">
+    <apex:stylesheet value="{!$Resource.BoMPlanMaster}" />
+    <style type="text/css">
+        .lastTh {
+            min-width: 8px !important;
+            width: 8px !important;
+            border-left: 0px !important;
+        }
+        .image-padding {
+            padding-right: 24px !important;
+        }
+        .goalPlanSuperHeader{
+            text-align: center;
+            white-space: normal !important;
+        }
+        .goalPlanHeader{
+            text-align: right;
+            white-space: normal !important;
+        }
+        .leftAlignHeader{
+            text-align: left;
+            white-space: normal !important;
+        }
+        .rightAlignHeader{
+            text-align: right;
+            white-space: normal !important;
+        }
+
+        .indent0{
+            font-weight:bold;
+            font-size: 11px !important;
+            white-space: normal !important;
+        }
+        .indent1{
+            padding-left: 10px;
+            font-style:italic;
+            font-size: 11px !important;
+            white-space: normal !important;
+        }
+        .indent2{
+            padding-left: 20px;
+            font-style:italic;
+            font-size: 11px !important;
+            white-space: normal !important;
+        }
+        .indent3{
+            padding-left: 30px;
+            font-style:italic;
+            font-size: 11px !important;
+            white-space: normal !important;
+        }
+        .contentindent0{
+            font-weight:bold;
+            font-size: 11px !important;
+            white-space: normal !important;
+        }
+        .contentindent1{
+            font-style:italic;
+            font-size: 11px !important;
+            white-space: normal !important;
+        }
+        .contentindent2{
+            font-style:italic;
+            font-size: 11px !important;
+            white-space: normal !important;
+        }
+        .contentindent3{
+            font-style:italic;
+            font-size: 11px !important;
+            white-space: normal !important;
+        }
+        
+        .columnView{
+            background: #F8F8F8  !important;
+        }
+        .columnBranch{
+            background: #F8F8F8  !important;
+        }
+        .columnStatus{
+            background: #F8F8F8  !important;
+        }
+        
+        .columnAdvGoal{
+            background: #FFFFCC !important;
+            text-align: right;
+            white-space: normal !important;
+        }
+        .columnAdvPlan{
+            background: #FFFFCC !important;
+            text-align: right;
+            white-space: normal !important;
+        }
+        .columnLendingGoal{
+            background: #CCFFFF !important;
+            text-align: right;
+            white-space: normal !important;
+        }
+        .columnLendingPlan{
+            background: #CCFFFF !important;
+            text-align: right;
+            white-space: normal !important;
+        }
+        .columnNkhGoal{
+            background: #FFCCCC !important;
+            text-align: right;
+            white-space: normal !important;
+        }
+        .columnNkhPlan{
+            background: #FFCCCC !important;
+            text-align: right;
+            white-space: normal !important;
+        }
+        .columnNiGoal{
+            background: #CCFFCC !important;
+            text-align: right;
+            white-space: normal !important;
+        }
+        .columnNiPlan{
+            background: #CCFFCC !important;
+            text-align: right;
+            white-space: normal !important;
+        }
+        .columnRecruiting{
+            background: #FFCCFF !important;
+            text-align: right;
+            white-space: normal !important;
+            /*padding-right: 15px !important;*/
+        }
+        .column {
+            padding-left: 10px !important;
+        }
+        
+        .lastColScrollBar{
+            width: 17px;
+            padding: 0px;
+            background-color: #F2F3F3;
+        }
+        .lastColNoScrollBar{
+            width: 0px;
+            padding: 0px;
+            background-color: #F2F3F3;
+        }
+        .rowMouseover{
+            background: #e3f3ff  !important;
+        }
+    </style>
+    <apex:messages styleClass="operationMessage" />
+    <apex:form id="theForm">
+        <apex:pageBlock title="" id="thePageBlock">
+        <apex:outputPanel id="theTabPanel">
+        <div style="width: 100%;">
+        <table style="width: 100%;border-spacing:0;border-collapse:collapse;" >
+            <tr>
+                <td>
+                    <table style="width: 100%;border-spacing:0;border-collapse:collapse;"><tr><td>
+                    <table class="list" style="width: 100%;border-spacing:0;border-collapse:collapse;">
+                        <thead class="rich-table-thead">
+                            <tr class="headerRow  ">
+                                <th class="headerRow  " scope="col" colspan="3" width="30%"></th>
+                                <th class="headerRow  goalPlanSuperHeader" scope="col" colspan="1" width="9%">Recruiting</th>
+                                <th class="headerRow  goalPlanSuperHeader" scope="col" colspan="2" width="12%">New Key HHs</th>
+                                <th class="headerRow  goalPlanSuperHeader" scope="col" colspan="2" width="17%">Advisory</th>
+                                <th class="headerRow  goalPlanSuperHeader" scope="col" colspan="2" width="17%">Lending</th>
+                                <th class="headerRow  goalPlanSuperHeader" scope="col" colspan="2" width="15%">Net Income</th>
+                                
+                            </tr>
+                            <tr class="headerRow  ">
+                                <th class="headerRow  leftAlignHeader" scope="col" colspan="1" width="5%">Action</th>
+                                <th class="headerRow  leftAlignHeader" scope="col" colspan="1" width="17%">Branch / Complex / Market</th>
+                                <th class="headerRow  leftAlignHeader" scope="col" colspan="1" width="8%">Plan Status</th>
+                                <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="9%">{!masterPlan.Year_Text__c} Plan<br/>(Hired - Termed)</th>
+                                <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="6%">{!masterPlan.Year_Text__c} Goal</th>
+                                <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="6%">{!masterPlan.Year_Text__c} Plan</th>
+                                <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8.5%">{!masterPlan.Year_Text__c} Goal</th>
+                                <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8.5%">{!masterPlan.Year_Text__c} Plan</th>
+                                <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8.5%">{!masterPlan.Year_Text__c} Goal</th>
+                                <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8.5%">{!masterPlan.Year_Text__c} Plan</th>
+                                <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="7.5%">{!masterPlan.Year_Text__c} Goal</th>
+                                <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="7.5%">{!masterPlan.Year_Text__c} Plan</th>
+                                
+                            </tr>
+                        </thead>
+                    </table>
+                    </td><td id="lastColumnTd" class="lastColScrollBar"></td></tr></table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div id="firstDiv" style="max-height:200px; overflow-y:auto;overflow-x:hidden;width:100%;">
+                        <apex:pageBlockTable value="{!bomPlanWrapperList}" var="wrapper" id="theBoMPlanPageBlockTable" width="100%;" onRowMouseOver="mouseover(this)" onRowMouseOut="mouseout(this)">
+                            <apex:column headerValue="Branch/Complex" width="5%" styleClass="columnView">
+                                <apex:outputLink value="/{!wrapper.bomPlan.Id}" target="_blank">
+                                    <font class="{!wrapper.cotentIndentClass}">View</font>
+                                </apex:outputLink>
+                            </apex:column>
+                            <apex:column headerValue="Branch/Complex" width="17%" styleClass="columnBranch">
+                                <apex:outputLink value="/{!wrapper.bomPlan.Main_Branch__c}" rendered="{!wrapper.bomPlan.Main_Branch__c != null}" target="_blank">
+                                    <font class="{!wrapper.indentClass}">{!wrapper.bomPlan.Main_Branch__r.Name}</font>
+                                </apex:outputLink>
+                                <apex:outputLink value="/{!wrapper.bomPlan.Sub_Supl_Complex__c}" rendered="{!wrapper.bomPlan.Sub_Supl_Complex__c != null}" target="_blank">
+                                    <font class="{!wrapper.indentClass}">{!wrapper.bomPlan.Sub_Supl_Complex__r.Name}</font>
+                                </apex:outputLink>
+                                <apex:outputLink value="/{!wrapper.bomPlan.Market_Complex__c}" rendered="{!wrapper.bomPlan.Market_Complex__c != null}" target="_blank">
+                                    <font class="{!wrapper.indentClass}">{!wrapper.bomPlan.Market_Complex__r.Name}</font>
+                                </apex:outputLink>
+                            </apex:column>
+                            <apex:column headerValue="Status" width="8%" styleClass="columnStatus">
+                                <font class="{!wrapper.cotentIndentClass}"><apex:outputText value="{!wrapper.status}"/></font>
+                            </apex:column>
+                            <apex:column headerValue="Recruiting 2014 Goal/2014 Plan" width="9%" styleClass="columnRecruiting">
+                                <font class="{!wrapper.cotentIndentClass}"><apex:outputText value="{!wrapper.netRecruitingPlan}"/></font>
+                            </apex:column>
+                            <apex:column headerValue="New Key HHs 2014 Goal/2014 Plan" width="6%" styleClass="columnNkhGoal">
+                                <font class="{!wrapper.cotentIndentClass}"><apex:outputText value="{!wrapper.newKeyHHsGoal}"/></font>
+                            </apex:column>
+                            <apex:column headerValue="New Key HHs 2014 Goal/2014 Plan" width="6%" styleClass="columnNkhPlan">
+                                <font class="{!wrapper.cotentIndentClass}"><apex:outputText value="{!wrapper.newKeyHHsPlan}"/></font>
+                            </apex:column>
+                            <apex:column headerValue="Advisory 2014 Goal/2014 Plan" width="8.5%" styleClass="columnAdvGoal">
+                                <font class="{!wrapper.cotentIndentClass}"><apex:outputText value="{!wrapper.advisoryGoal}"/></font>
+                            </apex:column>
+                            <apex:column headerValue="Advisory 2014 Goal/2014 Plan" width="8.5%" styleClass="columnAdvPlan">
+                                <font class="{!wrapper.cotentIndentClass}"><apex:outputText value="{!wrapper.advisoryPlan}"/></font>
+                            </apex:column>
+                            <apex:column headerValue="Lending 2014 Goal/2014 Plan" width="8.5%" styleClass="columnLendingGoal">
+                                <font class="{!wrapper.cotentIndentClass}"><apex:outputText value="{!wrapper.lendingGoal}"/></font>
+                            </apex:column>
+                            <apex:column headerValue="Lending 2014 Goal/2014 Plan" width="8.5%" styleClass="columnLendingPlan">
+                                <font class="{!wrapper.cotentIndentClass}"><apex:outputText value="{!wrapper.lendingPlan}"/></font>
+                            </apex:column>
+                            <apex:column headerValue="Net Income 2014 Goal/2014 Plan" width="7.5%" styleClass="columnNiGoal">
+                                <font class="{!wrapper.cotentIndentClass}"><apex:outputText value="{!wrapper.netIncomeGoal}"/></font>
+                            </apex:column>
+                            <apex:column headerValue="Net Income 2014 Goal/2014 Plan" width="7.5%" styleClass="columnNiPlan">
+                                <font class="{!wrapper.cotentIndentClass}"><apex:outputText value="{!wrapper.netIncomePlan}"/></font>
+                            </apex:column>
+                        </apex:pageBlockTable>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table style="width: 100%;border-spacing:0;border-collapse:collapse;"><tr><td>
+                    <table class="list" style="width: 100%;border-spacing:0;border-collapse:collapse;">
+                    <thead class="rich-table-thead">
+                        <tr class="headerRow  ">
+                            <th class="headerRow  rightAlignHeader" scope="col" colspan="3" width="30%">{!masterPlanWrapper.planType}: </th>
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="9%">{!masterPlanWrapper.netRecruitingPlan}</th>
+                            
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="6%">{!masterPlanWrapper.newKeyHHsGoal}</th>
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="6%">{!masterPlanWrapper.newKeyHHsPlan}</th>
+                            
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8.5%">{!masterPlanWrapper.advisoryGoal}</th>
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8.5%">{!masterPlanWrapper.advisoryPlan}</th>
+                            
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8.5%">{!masterPlanWrapper.lendingGoal}</th>
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8.5%">{!masterPlanWrapper.lendingPlan}</th>
+                            
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="7.5%">{!masterPlanWrapper.netIncomeGoal}</th>
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="7.5%">{!masterPlanWrapper.netIncomePlan}</th>
+                            
+                        </tr>
+                        <tr class="headerRow  ">
+                            <th class="headerRow  rightAlignHeader" scope="col" colspan="3" width="30%">To be approved plan gap: </th>
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="9%">{!masterPlanWrapper.netRecruitingPlanGap}</th>
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="6%"></th>
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="6%">{!masterPlanWrapper.newKeyHHsPlanGap}</th>
+                            
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8.5%"></th>
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8.5%">{!masterPlanWrapper.advisoryPlanGap}</th>
+                            
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8.5%"></th>
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8.5%">{!masterPlanWrapper.lendingPlanGap}</th>
+                            
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="7.5%"></th>
+                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="7.5%">{!masterPlanWrapper.netIncomePlanGap}</th>
+                            
+                        </tr>
+                    </thead>
+                    </table>
+                    </td><td id="lastFooterTd" class="lastColScrollBar"></td></tr></table>
+                </td>
+            </tr>
+        </table>
+        </div>
+        </apex:outputPanel>
+        </apex:pageBlock>
+    </apex:form>
+    <apex:includeScript value="{!$Resource.jQuery10}"/>
+
+    <script type="text/javascript">
+        $.noConflict();
+        jQuery(document).ready(function($) {
+            // Extend the default Number object with a formatMoney() method:
+            // usage: someVar.formatMoney(decimalPlaces, symbol, thousandsSeparator, decimalSeparator)
+            // defaults: (2, "$", ",", ".")
+            Number.prototype.formatMoney = function(places, symbol, thousand, decimal) {
+                places = !isNaN(places = Math.abs(places)) ? places : 2;
+                symbol = symbol !== undefined ? symbol : "$";
+                thousand = thousand || ",";
+                decimal = decimal || ".";
+                var number = this, negative = number < 0 ? "-"
+                        : "", i = parseInt(number = Math.abs(
+                        +number || 0).toFixed(places), 10)
+                        + "", j = (j = i.length) > 3 ? j % 3
+                        : 0;
+                return symbol
+                        + negative
+                        + (j ? i.substr(0, j) + thousand : "")
+                        + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand)
+                        + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
+            };
+
+            var newKeyTable = $("*[id*=theBoMPlanPageBlockTable]")[0];
+            $(newKeyTable).children('thead').remove();
+            formatSummaryLayout();
+            
+            var scrollHeight = jQuery("#firstDiv")[0].scrollHeight;
+            var divHeight = jQuery("#firstDiv").height();
+            if(Number(scrollHeight <= Number(divHeight)) || isCompatibilityMode()) {
+                $("#lastColumnTd").removeClass("lastColScrollBar").addClass("lastColNoScrollBar");
+                $("#lastFooterTd").removeClass("lastColScrollBar").addClass("lastColNoScrollBar");
+            }else{
+                $("#lastColumnTd").removeClass("lastColNoScrollBar").addClass("lastColScrollBar");
+                $("#lastFooterTd").removeClass("lastColNoScrollBar").addClass("lastColScrollBar");
+            }
+            var isCompatibleMode = (navigator.userAgent);
+        });
+        
+        function isCompatibilityMode(){
+        	var agentStr = navigator.userAgent;
+	        var mode;
+	        if (agentStr.indexOf("Trident/5.0") > -1) {
+	            if (agentStr.indexOf("MSIE 7.0") > -1)
+	                mode = "IE9 Compatibility View";
+	            else
+	                mode = "IE9";
+	        }
+	        else if (agentStr.indexOf("Trident/4.0") > -1) {
+	            if (agentStr.indexOf("MSIE 7.0") > -1)
+	                mode = "IE8 Compatibility View";
+	            else
+	                mode = "IE8";
+	        }
+	        else {
+	            mode = "IE7";
+	        }
+	        
+	        return mode.indexOf("Compatibility") >= 0;
+        }
+        
+        function mouseover(t) {
+            jQuery(t).find("td").each(function(i){
+                jQuery(this).addClass("rowMouseover");
+            });
+        }
+        
+        function mouseout(t) {
+            jQuery(t).find("td").each(function(i){
+                jQuery(this).removeClass("rowMouseover");
+            });
+        }
+        
+        function formatSummaryLayout(){
+            var pbBody = jQuery(".pbBody").clone();
+            jQuery("*[id*=theForm]").remove();
+            jQuery("body").prepend(pbBody);
+                        
+        }
+    </script>
+</apex:page>

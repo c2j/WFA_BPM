@@ -1,0 +1,22 @@
+<apex:page StandardController="System_Administrator_Controls__c" extensions="vfSFMessagesCtrlr" sidebar="false" showHeader="false">
+
+<script language="javascript" type="text/javascript">
+
+var ViewedMsg = "{!CrntUser.Viewed_System_Admin_Message__c}";
+var Exempted = "{!UserExempted}";
+var Message = "{!SysAdminCtrl.System_Admin_Message__c}";
+
+function Check() {
+
+    if (ViewedMsg == "false" && Exempted == "false" && Message != '<br>') {
+        
+        window.open("/apex/vfSFMessages", "_parent");
+
+    }
+}
+
+window.onload = Check;
+
+</script>
+
+</apex:page>

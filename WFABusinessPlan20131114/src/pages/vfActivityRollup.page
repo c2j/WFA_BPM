@@ -1,0 +1,103 @@
+<apex:page id="pgFATalentPage" standardController="FA_Talent__c" action="{!fillOpportunities}" extensions="clsActivityRollup">
+<apex:includeScript value="{!URLFOR($Resource.jqueryTableSorter, 'jquery-latest.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.jqueryTableSorter, 'jquery.tablesorter.min.js')}"/>
+<script>
+    $(document).ready(function(){
+                  //important to specify the sorting param otherwise it wont always choose the 'correct' one
+                  $("table").tablesorter({
+                    headers: {
+                        0: {sorter: false},
+                        1: {sorter: 'date'},
+                        2: {sorter: false},
+                        3: {sorter: false},
+                        4: {sorter: false},
+                        5: {sorter: false}
+                    }
+                });
+                $("table").tablesorter({sortList: [[1,1]]});
+      });
+
+
+</script>
+
+<style>
+    .fewerMore {
+        display: none;
+    }
+    .LinkFooter {
+        text-align:center;
+    }
+    
+    .LinkFooterBackToTop {
+        display: inline;
+        float: left;
+        margin-left: 4px;
+    }
+    
+    .BackToTopLink {
+        color: #015BA7;
+        text-decoration: none;
+        font-size: 91%;
+    }
+    
+    .ShowMoreLink {
+        color: #015BA7;
+        text-decoration: none;
+    }   
+</style>
+
+<apex:form >
+ <apex:pageMessages /> 
+ <apex:detail relatedList="true" inlineedit="true">
+
+  <apex:pageblock id="bRelatedList" title="Related Activities">
+   <apex:pageBlockTable styleClass="tablesorter" id="pbtActivity" value="{!OpportunityHistory}" var="ThisOpportunity" rendered="{!NOT(ISNULL(OpportunityHistory))}">
+        <apex:column width="7.5%">
+            <apex:facet name="header">Channel</apex:facet>
+                {!ThisOpportunity.o.Channel__c}
+            </apex:column>
+        <apex:column width="10%">
+            <apex:facet name="header">Due Date</apex:facet>
+                <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                    <apex:param value="{!ThisOpportunity.dteActivityDate}" /> 
+                </apex:outputText>
+            </apex:column>
+        <apex:column width="10%">
+            <apex:facet name="header">Subject</apex:facet>
+                <a href="/{!ThisOpportunity.idRecord}" target="_blank">{!ThisOpportunity.strSubject}</a>
+            </apex:column>
+        <apex:column width="10%">
+            <apex:facet name="header">Assigned To</apex:facet>
+                {!ThisOpportunity.strOwner}
+            </apex:column> 
+        <apex:column >
+            <apex:facet name="header">Description</apex:facet>
+                {!ThisOpportunity.strDescription}
+            </apex:column>
+        <apex:column rendered="{!UserIsNotManager}">
+            <apex:facet name="header">Legacy Comments</apex:facet>
+                {!ThisOpportunity.strLegacyComments}
+            </apex:column>            
+   </apex:pageBlockTable>
+
+   <apex:outputLabel value="No records to display" rendered="{!(ISNULL(OpportunityHistory))}" styleClass="noRowsHeader"></apex:outputLabel>
+ </apex:pageblock>
+ </apex:detail>
+ 
+<div class="LinkFooter">
+
+    <div class="LinkFooterBackToTop"> 
+        <a href="#skiplink" title="Back To Top" class="BackToTopLink">
+        <img src="/img/upToTop_caret.gif" alt="Back to Top" width="8" height="8" title="Back to Top"/> Back To Top
+        </a>
+    </div>
+ 
+Always show me 
+<a class="ShowMoreLink" href="javascript:document.getElementById(%27j_id0:j_id3%27)[%27j_id0:j_id3:j_id31:rowsperlist%27].value=%275%27;document.getElementById(%27j_id0:j_id3%27).submit();">fewer</a>
+<img src="/s.gif" alt="Show Fewer"  class="fewerArrow" title="Show Fewer"/> /  <img src="/s.gif" alt="Show More"  class="moreArrow" title="Show More"/>
+<a class="ShowMoreLink" href="javascript:document.getElementById(%27j_id0:j_id3%27)[%27j_id0:j_id3:j_id31:rowsperlist%27].value=%2715%27;document.getElementById(%27j_id0:j_id3%27).submit();">more</a>
+  records per related list
+</div>
+</apex:form>
+
+</apex:page>

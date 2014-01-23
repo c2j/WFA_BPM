@@ -1,0 +1,26 @@
+<apex:page sidebar="true" showheader="true" StandardController="Account">
+<style>
+.fewermore {display: none;}
+</style>
+  <h1>Hello {!$User.FirstName & ' ' & $User.LastName}</h1>
+  <p></p>
+  <apex:outputLink value="http://google.com/">Google</apex:outputLink>
+  <br></br>
+  <apex:outputLink value="{!$Page.JYuVFTutorial}">I am me</apex:outputLink>
+  
+    <apex:pageblock title="Branch Information">
+
+    <apex:pageblockSection title="Information for {!account.name}">
+        <apex:outputField value="{!account.name}"/>
+        <apex:outputField value="{!account.Main_Branch__r.name}"/>
+    <apex:pageblocktable value="{!account.Contacts}" var="item">
+        <apex:column value="{!item.name}"/>
+        <apex:column value="{!item.A_Number__c}"/>
+    </apex:pageblocktable>
+
+    </apex:pageblockSection>
+
+    </apex:pageblock>
+
+
+</apex:page>

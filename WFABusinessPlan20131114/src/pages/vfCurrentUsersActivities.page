@@ -1,0 +1,73 @@
+<apex:page sidebar="false" showHeader="false" standardStylesheets="true" standardController="Contact" extensions="UsersActivities">
+
+<style>
+.header {
+text-align:center;
+font-size:125%;
+font-weight:bold;
+}
+</style>
+
+
+<apex:form id="UsersActivities">
+   
+    <apex:outputPanel rendered="{!HasActivities}" >
+        
+        <p class = "header">You have logged the following completed activites on {!contact.name}</p>
+        
+        <apex:pageBlock > 
+            <h5>Start Date: </h5>
+            <apex:inputField label="Start Date" value="{!proxyTask.ActivityDate}" />
+            <h5>End Date: </h5>
+            <apex:inputField label="End Date" value="{!proxyCase.Case_Created_Date__c}"/>
+            <h5>Keywords (i.e. keyword1 keyword2): </h5>
+            <apex:inputField label="Keywords" value="{!proxyTask.CallDisposition}"/>
+            <apex:commandButton reRender="UsersActivities" value="Apply Filters"  action="{!ApplyFilters}"/>
+            <apex:commandButton reRender="UsersActivities" value="Reset Filters"  action="{!ResetFilters}"/>
+            <br>
+            </br>
+            <apex:pageBlockTable id="UsersActivities" value="{!UsersActivities}" var="ThisTask" rows="{!PageSize}">
+                <apex:column width="5%" >
+                    <apex:facet name="header">Action</apex:facet>
+                    <apex:outputLink value="/{!ThisTask.id}/e?retURL=%2F{!ThisTask.WhoID}">Edit</apex:outputLink>
+                </apex:column>
+                
+                <apex:column width="10%">
+                    <apex:facet name="header">Activity Date</apex:facet>
+                    <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                        <apex:param value="{!ThisTask.ActivityDate}" />
+                    </apex:outputText>
+                </apex:column>
+                
+                <apex:column width="15%">
+                    <apex:facet name="header">Subject</apex:facet>
+                    {!ThisTask.Subject}
+                </apex:column>
+                                
+                <apex:column width="20%">
+                    <apex:facet name="header">Category</apex:facet>
+                    {!ThisTask.Category__c}
+                </apex:column>
+                
+                <apex:column width="50%">
+                    <apex:facet name="header">Comments</apex:facet>
+                    {!ThisTask.Description}                
+                </apex:column>
+                
+            </apex:pageBlockTable>
+            <apex:outputpanel id="showMore" layout="block" rendered="{!AllowShowMore}">
+                <apex:commandLink action="{!ShowMore}" >Show More</apex:commandLink>
+            </apex:outputpanel>
+            
+            
+        </apex:pageBlock>
+    </apex:outputPanel>
+    
+    <apex:outputPanel rendered="{!NOT(HasActivities)}">
+        <p class = "header">You have not logged any completed activites on {!contact.name}</p>
+    </apex:outputPanel>
+
+</apex:form>
+
+
+</apex:page>

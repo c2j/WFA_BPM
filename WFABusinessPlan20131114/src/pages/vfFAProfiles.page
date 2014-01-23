@@ -1,0 +1,272 @@
+<apex:page sidebar="false" showHeader="false" StandardController="Hobbies_Charities__c" extensions="vfFAProfilesCtrlr">
+
+<style type="text/css">
+
+.LongTextArea {width:450px;height:70px;}
+
+.LongText {width:300px;}
+
+.MediumText {width:250px;}
+
+.ShortText {width:85px;}
+
+.VeryShortText {width:50px;}
+
+.labels {font-weight:bold;font-size: 110%;}
+
+.dateFormat{ visibility:hidden; }
+
+.Instructions {font-weight:bold; font-size:125%;}
+
+#ANumber {margin-top:1px;}
+
+
+</style>
+
+<script language="javascript" type="text/javascript">
+
+function AddNewChildren() {
+    
+    SetNumOfNewChildren(
+        'Add'
+    );  
+                                         
+}
+
+function refresh() {
+    location.reload(true);
+}
+    
+</script>
+
+<apex:form forceSSL="true">
+
+
+<apex:actionFunction name="SetNumOfNewChildren" action="{!SetNumOfNewChildren}" reRender="NewChildrenLabel, NewChildren">
+    <apex:param name="AddOrRemove" value="" assignTo="{!AddOrRemove}"/>
+     
+</apex:actionFunction>
+
+<apex:actionFunction action="{!DeleteChild}" name="DeleteChild" reRender="FAsChildren" >
+   <apex:param name="ChildId" value="" assignTo="{!SelectedChildId}"/>
+</apex:actionFunction>
+
+<apex:image value="{!$Resource.WFALogo}" />
+
+<apex:outputpanel id="FAsProfile" >
+
+    <apex:pageblock title="Profile For {!Channel} FA: {!ProfileRecord.Name} ({!ANumber})" rendered="{!ProfileSaved == False}"> <!-- rendered="{!ProfileRecord.id != ''}">-->
+        <div class="Instructions" style="text-align:center;">If you do not see data that you previously submitted, try refreshing the window</div>
+        
+        <br/><br/>
+        
+        <div class="Instructions">Review the previously-collected profile information, update the fields as necessary, and enter any new information. 
+        If there are no updates to the existing profile information, please select the box ‘No Changes to Be Made’ at the bottom of this page and click ‘Submit.’</div>   
+        
+        <br/><br/>
+        
+        
+         
+        <apex:pageblockSection title="Personal Information" >
+        
+            <apex:inputfield value="{!ProfileRecord.First_Name__c}"/>
+            <apex:inputfield value="{!ProfileRecord.Last_Name__c}"/>
+            <apex:inputfield value="{!ProfileRecord.Familiar_Name__c}"/>
+            <apex:inputfield value="{!ProfileRecord.Preferred_Formal_Name__c}"/>
+            <apex:inputfield value="{!ProfileRecord.Professional_Designations__c}"/>
+            <apex:inputfield value="{!ProfileRecord.CFP__c}"/>
+            <apex:inputfield value="{!ProfileRecord.College_s_Attended__c}" styleClass="LongText" />
+            <apex:inputfield value="{!ProfileRecord.College_Major_s__c}" styleClass="LongText" />
+            <apex:inputfield value="{!ProfileRecord.Hometown_City__c}" />
+            <apex:inputfield value="{!ProfileRecord.Hometown_State__c}" />
+            <apex:inputfield value="{!ProfileRecord.Veteran__c}"/>
+            <apex:inputfield value="{!ProfileRecord.Branch_of_Service__c}" />
+        
+        </apex:pageblockSection>
+    
+        <apex:pageblockSection title="Family Information" >
+            <apex:inputfield value="{!ProfileRecord.Spouse_Partner_First_Name__c}"/>
+            <apex:inputfield value="{!ProfileRecord.Spouse_Partner_Last_Name__c}"/>
+            <apex:inputfield value="{!ProfileRecord.Spouse_Partner_Birthdate__c}"/>
+            <apex:inputfield value="{!ProfileRecord.Wedding_Anniversary__c}"/>
+            <br/>   
+        </apex:pageblocksection> 
+    
+        <div style="text-align:center; font-weight:bold; font-size:120%">Existing Children</div>
+        <apex:pageBlockTable value="{!Children}" var="c" columns="11" id="FAsChildren">
+            <apex:column rendered="false">
+                <apex:facet name="header">Action</apex:facet>
+                <a href="javascript:if (window.confirm('Are you sure?')) DeleteChild('{!c.Id}');" >Del</a>
+            </apex:column> 
+            <apex:column >
+                <apex:facet name="header">Relationship</apex:facet>
+                <apex:inputField value="{!c.Relationship_Type__c}" styleClass="ShortText"/> 
+            </apex:column> 
+            <apex:column >
+                <apex:facet name="header">Gender</apex:facet>
+                <apex:inputField value="{!c.Gender__c}" styleClass="ShortText"/> 
+            </apex:column>                 
+            <apex:column >
+                <apex:facet name="header">First Name</apex:facet>
+                <apex:inputField value="{!c.Name}"/> 
+            </apex:column>     
+            <apex:column >
+                <apex:facet name="header">Last Name</apex:facet>
+                <apex:inputField value="{!c.Child_Last_Name__c}"/> 
+            </apex:column>   
+            <apex:column >
+                <apex:facet name="header">Birthdate</apex:facet>
+                <apex:inputField value="{!c.Child_Birthdate__c}" /> 
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">Address 1</apex:facet>
+                <apex:inputField value="{!c.Child_Address_1__c}"/> 
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">Address 2</apex:facet>
+                <apex:inputField value="{!c.Child_Address_2__c}" styleClass="ShortText"/> 
+            </apex:column>                   
+            <apex:column >
+                <apex:facet name="header">City</apex:facet>
+                <apex:inputField value="{!c.Child_City__c}" styleClass="ShortText"/> 
+            </apex:column>     
+            <apex:column >
+                <apex:facet name="header">State</apex:facet>
+                <apex:inputField value="{!c.Child_State__c}" styleClass="VeryShortText"/> 
+            </apex:column>     
+            <apex:column >
+                <apex:facet name="header">Zip</apex:facet>
+                <apex:inputField value="{!c.Child_Zip__c}" styleClass="VeryShortText"/> 
+            </apex:column>     
+            <apex:column >
+                <apex:facet name="header">Current School</apex:facet>
+                <apex:inputField value="{!c.Child_School_College__c}"/> 
+            </apex:column>                       
+                    
+            </apex:pageBlockTable>
+            
+            <br/>
+            
+            <div style="text-align:center; font-weight:bold; font-size:120%">
+                <!--<input id="NumOfNewChildren" value="0" type="number" size="3" maxlength="3"/>-->
+                <apex:commandButton value="Add New Child" onclick="SetNumOfNewChildren('Add')" reRender="NewChildren"/><br/><br/>(Leave First Name blank to not save new child record)
+                <!--<apex:commandlink value="Remove" onclick="RemoveNewChildren();" reRender="NewChildrenLabel, NewChildren"/>-->
+            </div>
+            
+            <apex:pageBlockTable id="NewChildren" value="{!NewChildren}" var="nc" rows="{!NumOfNewChildren}" columns="11">
+                <apex:column rendered="false">
+                    <apex:facet name="header">ID</apex:facet>
+                    <apex:inputField value="{!nc.ID}" styleClass="ShortText"/> 
+                </apex:column> 
+                <apex:column >
+                    <apex:facet name="header">Relationship</apex:facet>
+                    <apex:inputField value="{!nc.Relationship_Type__c}" styleClass="ShortText"/> 
+                </apex:column> 
+                <apex:column >
+                    <apex:facet name="header">Gender</apex:facet>
+                    <apex:inputField value="{!nc.Gender__c}" styleClass="ShortText"/> 
+                </apex:column>                 
+                <apex:column >
+                    <apex:facet name="header">First Name</apex:facet>
+                    <apex:inputField value="{!nc.Name}"/> 
+                </apex:column>     
+                <apex:column >
+                    <apex:facet name="header">Last Name</apex:facet>
+                    <apex:inputField value="{!nc.Child_Last_Name__c}"/> 
+                </apex:column>   
+                <apex:column >
+                    <apex:facet name="header">Birthdate</apex:facet>
+                    <apex:inputField value="{!nc.Child_Birthdate__c}" /> 
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Address 1</apex:facet>
+                    <apex:inputField value="{!nc.Child_Address_1__c}"/> 
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Address 2</apex:facet>
+                    <apex:inputField value="{!nc.Child_Address_2__c}" styleClass="ShortText"/> 
+                </apex:column>                   
+                <apex:column >
+                    <apex:facet name="header">City</apex:facet>
+                    <apex:inputField value="{!nc.Child_City__c}" styleClass="ShortText"/> 
+                </apex:column>     
+                <apex:column >
+                    <apex:facet name="header">State</apex:facet>
+                    <apex:inputField value="{!nc.Child_State__c}" styleClass="VeryShortText"/> 
+                </apex:column>     
+                <apex:column >
+                    <apex:facet name="header">Zip</apex:facet>
+                    <apex:inputField value="{!nc.Child_Zip__c}" styleClass="VeryShortText"/> 
+                </apex:column>     
+                <apex:column >
+                    <apex:facet name="header">Current School</apex:facet>
+                    <apex:inputField value="{!nc.Child_School_College__c}"/> 
+                </apex:column>                       
+                    
+            </apex:pageBlockTable>
+        
+            
+            <apex:pageBlockSection title="Practice Information">
+                <apex:inputfield value="{!ProfileRecord.Assistant_Full_Name__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Assistant_Email__c}" styleClass="MediumText"/>
+                <apex:inputfield value="{!ProfileRecord.Assistant_Phone__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Financial_Consultant_s_Name__c}"/>
+            
+                <apex:inputfield value="{!ProfileRecord.Team_Member_1__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Team_Member_2__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Team_Member_3__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Team_Member_4__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Team_Member_5__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Team_Member_6__c}"/>                                                            
+            
+            </apex:pageBlockSection>
+    
+            <apex:pageBlockSection title="Hobbies & Interests Information">
+                <apex:inputfield value="{!ProfileRecord.Rank_1__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Rank_2__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Rank_3__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Rank_4__c}"/>
+            
+                <apex:inputfield value="{!ProfileRecord.Other_Interest_1__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Other_Interest_2__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Other_Interest_3__c}"/>                        
+                <apex:inputfield value="{!ProfileRecord.Additional_Interests_Details__c}" styleClass="LongTextArea"/>            
+            
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Other Information" >
+                <apex:inputfield value="{!ProfileRecord.Charities_Community_Service_Grps_Prgms__c}" styleClass="LongTextArea"/>
+                
+                <apex:inputfield value="{!ProfileRecord.What_Drives_Success__c}" styleClass="LongTextArea"/>
+                 
+                <apex:inputfield value="{!ProfileRecord.Clubs_Boards_or_Associations__c}" styleClass="LongTextArea"/>
+                
+                <apex:inputfield value="{!ProfileRecord.Additional_Information__c}" styleClass="LongTextArea"/>
+                
+                <apex:inputfield value="{!ProfileRecord.Future_Charities_Clubs_Boards_Assoc__c}" styleClass="LongTextArea"/>
+                
+                <apex:inputfield value="{!ProfileRecord.Additional_comments_from_Manager__c}" styleClass="LongTextArea"/>
+            </apex:pageBlockSection>
+            
+            
+            
+            <apex:pageblockSection title="Update Profile">
+                
+                <apex:inputfield value="{!ProfileRecord.No_Changes_Made__c}"/>
+                <apex:inputfield value="{!ProfileRecord.Status__c}"/>
+                <apex:pageMessages />
+                
+                
+            </apex:pageblockSection>
+            <div style="text-align:center"><apex:commandButton value="Submit" action="{!SaveProfile}" reRender="FAsProfile"/></div>
+            
+    </apex:pageblock>
+    
+    <apex:pageblock title="Submission Result" rendered="{!ProfileSaved}" >
+        <span style="font-weight:bold;font-size:120%">Your changes have been saved. Refresh your browser to view your updated profile.</span>
+    </apex:pageblock>
+</apex:outputpanel>
+
+
+</apex:form>
+</apex:page>

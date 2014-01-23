@@ -1,0 +1,8 @@
+<apex:page standardController="FA_Talent__c" showHeader="false" sidebar="false">
+	<apex:includeScript value="{!URLFOR($Resource.jqueryfixheadertable2, 'javascript/jquery-1.7.1.min.js')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.jqueryfixheadertable2, 'javascript/jquery-ui-1.8.18.custom.min.js')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.jqueryfixheadertable2, 'javascript/jquery.fixheadertable.js')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.jqueryfixheadertable2, 'jquery-ui/css/ui-lightness/jquery-ui-1.8.4.custom.css')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.jqueryfixheadertable2, 'css/base.css')}"/>
+	<c:cmpFATalentHistory strAccountId="{!$CurrentPage.parameters.id}" />
+</apex:page>

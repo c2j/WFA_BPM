@@ -1,0 +1,75 @@
+<apex:page sidebar="false" showheader="false" Controller="vfOtherActiveEffortsCtrlr">
+
+<apex:form >
+    <apex:pageBlock title="Other Active Efforts">
+        <apex:pageblockTable value="{!ActiveEfforts}" var="effort" >
+            <apex:column width="3%">
+                    <apex:facet name="header">Action</apex:facet>
+                    <apex:outputLink value="/{!effort.id}/e?retURL=%2F{!effort.id}">Edit</apex:outputLink>                      
+            </apex:column>
+            <apex:column width="20%">
+                <apex:facet name="header">Effort Name</apex:facet>
+                <a href="/{!Effort.ID}">{!Effort.Name}</a>
+            </apex:column>
+            <apex:column width="5%">
+                <apex:facet name="header">Channel</apex:facet>
+                {!Effort.Channel__c}
+            </apex:column>             
+            <apex:column width="20%">
+                <apex:facet name="header">Stage</apex:facet>
+                {!Effort.StageName}
+            </apex:column>
+            <apex:column width="10%">
+                <apex:facet name="header">Proj/Actual Hire Date</apex:facet>
+                <apex:outputText value="{0,date,M/dd/yyyy}">
+                    <apex:param value="{!Effort.CloseDate}" / >
+                </apex:outputText>
+                
+            </apex:column>
+                               
+            <apex:column width="20%">
+                <apex:facet name="header">Branch</apex:facet>
+                {!Effort.Branch_Name__c}
+            </apex:column>   
+            <apex:column width="10%">
+                <apex:facet name="header">T12</apex:facet>
+                <apex:outputText value="{0,number,$#,###}">
+                    <apex:param value="{!Effort.Amount}" / >
+                </apex:outputText>
+                
+            </apex:column>     
+            <apex:column width="10%">
+                <apex:facet name="header">AUM</apex:facet>
+                <apex:outputText value="{0,number,$#,###}">
+                    <apex:param value="{!Effort.AUM__c}" / >
+                </apex:outputText>
+            </apex:column>  
+                                                  
+        </apex:pageblockTable>
+        
+        
+  
+    </apex:pageBlock>
+    <apex:pageblock title="Recently Logged Activities">
+        <apex:pageblockTable value="{!ActiveEfforts}" var="effort"  >
+        <apex:column width="20%" >
+            <apex:facet name="header">Effort Name</apex:facet>
+            {!Effort.Name}
+        </apex:column> 
+        <apex:column width="5%">
+            <apex:facet name="header">Channel</apex:facet>
+            {!Effort.Channel__c}
+        </apex:column>              
+        <apex:column width="75%">
+            <apex:facet name="header">Recent Activities</apex:facet>
+            {!Effort.Recent_Activities_Information__c}
+        </apex:column>    
+    </apex:pageblockTable>  
+    
+    
+    </apex:pageblock>
+
+
+</apex:form>
+
+</apex:page>

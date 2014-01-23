@@ -1,0 +1,1134 @@
+<apex:page id="thePage" controller="BPActionPlanElementCon" tabStyle="Action_Plan_Element__c" action="{!init}" title="Edit Action Plan Element">
+<apex:stylesheet value="{!$Resource.BoMPlanMaster}" />	
+<style>
+	.lastTh {
+		min-width: 8px  !important;
+		width:8px !important;
+ 		border-left: 0px !important; 
+	}
+	.image-padding {
+		padding-right: 24px!important; 
+	}
+	.numberCol {
+		text-align: right;
+		vertical-align:middle;
+	}
+	.contentDiv {
+		width:100%; 
+		max-height:200px; 
+		overflow:auto;
+	}
+	.description {
+		width:100%; 
+		height:50px;
+	} 
+	.mainTable {
+		width: 100%;
+		border-collapse: separate;
+/* 		border-spacing: 20px; */
+	}
+	.headerTable {
+		width:100%; 
+		border-spacing:0; 
+		border-collapse:collapse;
+	}
+	
+	p { 
+		font-weight: bold;
+		font-family: Arial,Helvetica,sans-serif;
+	}
+	.inputText {
+		width:100%; 
+/* 		height:50px; */
+	} 
+	.activeTab {
+		font-weight: bold;
+    	font-weight: 20px !important;
+    	font-family: Arial, Helvetica, sans-serif !important;
+    	background: Red;
+    } 
+    .subTable {
+    	max-height:100px; 
+    	width:30%;
+    }
+    .column {
+    	padding-left: 10px !important;
+    }
+    .splitter {
+    	background-color:rgb(0,0, 128);
+    	height:3px;
+    }
+</style>
+<apex:messages styleClass="operationMessage"/>
+	<apex:form id="theForm">
+		<apex:pageBlock title="Action Plan Element Selection" id="thePageBlock">
+		<apex:pageBlockButtons >
+			<apex:commandButton action="{!back}" value="Edit Primary Goal"/>
+			<apex:commandButton action="{!save}" value="Save All FA Plan Elements" />
+			<apex:commandButton action="{!cancel}" value="Go Back to Plan"/>
+		</apex:pageBlockButtons>
+		
+		
+		<apex:tabPanel switchType="client" selectedTab="ClientAndAssetAcquisition" id="theTabPanel" activeTabClass="activeTab">
+			<apex:tab label="{!primaryGoalList[0]}" name="ClientAndAssetAcquisition" id="ClientAndAssetAcquisition" style="padding:0;">
+				<table class="mainTable" id="firstTabTable">
+					<tr>
+						<td colspan="3">
+							<p style="color: rgb(0,0, 128);">Please select the activities you would like this segment to focus on in the coming year.  Once your plan is completed, you can individualize the approach for each FA.</p>
+							<br/>
+						</td>
+					</tr>
+					<tr>
+			   	 		<td colspan="3">
+			   	 			<table style="width:100%;">
+			        			<tr>
+			        				<td>
+					        		<table summary="" class="list headerTable">
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:18%;"><div>Customer Name</div></th>
+											<th class="headerRow  " scope="col" colspan="1" style="width:15%;"><div>Branch</div></th>
+											<th class="headerRow  " scope="col" colspan="1" style="width:7%;"><div>Quadrant</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan New Key HH</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan Lending</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan Advisory</div></th>
+											<th class="headerRow numberCol" scope="col" colspan="1" ><div>Plan Sales Revenue</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			        				</td>
+			        			</tr>
+			        			<tr>
+			        				<td>
+			        				<div class="contentDiv">
+					        		<apex:pageBlockTable value="{!firstTabCustomerTableList}" title="Customers" var="ap" width="100%" id="firstTabCustomerTable">
+										<apex:column headerValue="Customer Name" width="18%">
+											<apex:outputLink value="/{!ap.FA_Goal__r.FA__r.Id}" target="_blank">
+												<apex:outputField value="{!ap.FA_Goal__r.FA__r.Name}"/>
+											</apex:outputLink>
+										</apex:column>
+										
+										<apex:column headerValue="Branch" width="15%">
+											<apex:outputLink value="/{!ap.FA_Goal__r.FA__r.Account.Id}" target="_blank">
+												<apex:outputText value="{!ap.FA_Goal__r.FA__r.Account.Name}"/>
+											</apex:outputLink>
+										</apex:column>
+										<apex:column headerValue="Quadrant" width="7%">
+											<apex:outputField value="{!ap.FA_Goal__r.BP_Quadrant__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan New Key HH" width="15%" styleClass="numberCol">
+											<apex:outputText value="{!ap.FA_Goal__r.Plan_New_Key_HHs__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Lending" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Lending__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Advisory" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Advisory_Net_Flows__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Sales Revenue" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Net_Income__c}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+			        				</div>
+			        			    </td>
+			        			</tr>
+			        		</table>
+			   	 		</td>
+			   	 	</tr>
+			   	 	<tr class="splitter"><td colspan="3"></td></tr>
+			    <apex:repeat value="{!firstTabWrapperList}" var="key">
+    				<tr>
+    					<td class="subTable">
+    						<apex:outputPanel rendered="{!key.oddList != null}">
+	    					<table style="width:100%;">
+	    						<tr>
+			    					<th colspan="3" style="text-align: center;"><apex:outputText value="{!key.oddTitle}" /></th>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<table summary="" class="list headerTable">
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:5%;">
+												<div>
+												<!-- <input type="checkbox" class="selectAll" id="{!key.Id}" position="left"/> -->
+												Select
+												</div>
+											</th>
+											<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			    					</td>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<div class="contentDiv" id="{!key.Id}odd">
+			    					<apex:pageBlockTable value="{!key.oddList}" var="wrapper" width="100%">
+										<apex:column headerValue="Select" width="5%">
+											<apex:inputCheckbox value="{!wrapper.isSelected}" styleClass="column"/>
+										</apex:column>
+										<apex:column headerValue="Plan Activity Name" styleClass="column">
+											<apex:outputText value="{!wrapper.planActivity.Name}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+									</div>
+									</td>
+			    				</tr>
+	    					</table>
+	    					</apex:outputPanel>
+    					</td>
+    					<td class="subTable">
+    						<apex:outputPanel rendered="{!key.thirdList != null}">
+	   						<table style="width:100%;">
+	   						<tr>
+		    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.thirdTitle}" /></th>
+		    				</tr>
+		    				<tr>
+		    					<td>
+		    					<table summary="" class="list headerTable">
+									<tr class="headerRow ">
+										<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+										<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+										<th class="lastTh"></th>
+									</tr>
+								</table>	
+		    					</td>
+		    				</tr>
+		    				<tr>
+		    					<td>
+		    					<div class="contentDiv" id="{!key.Id}third">
+	    						<apex:pageBlockTable value="{!key.thirdList}" var="wrapper" width="100%">
+									<apex:column headerValue="Select" width="5%">
+										<apex:inputCheckbox value="{!wrapper.isSelected}" styleClass="column"/>
+									</apex:column>
+									<apex:column headerValue="Plan Activity Name" styleClass="column">
+										<apex:outputText value="{!wrapper.planActivity.Name}"/>
+									</apex:column>
+								</apex:pageBlockTable>
+								</div>
+								</td>
+		    				</tr>
+		    				</table>
+    						</apex:outputPanel>
+    					</td>
+	    				<td class="subTable">
+    						<apex:outputPanel rendered="{!key.evenList != null}">
+	   						<table style="width:100%;">
+	   						<tr>
+		    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.evenTitle}" /></th>
+		    				</tr>
+		    				<tr>
+		    					<td>
+		    					<table summary="" class="list headerTable">
+									<tr class="headerRow ">
+										<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+										<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+										<th class="lastTh"></th>
+									</tr>
+								</table>	
+		    					</td>
+		    				</tr>
+		    				<tr>
+		    					<td>
+		    					<div class="contentDiv" id="{!key.Id}even">
+	    						<apex:pageBlockTable value="{!key.evenList}" var="wrapper" width="100%">
+									<apex:column headerValue="Select" width="5%">
+										<apex:inputCheckbox value="{!wrapper.isSelected}"/>
+									</apex:column>
+									<apex:column headerValue="Plan Activity Name" styleClass="column">
+										<apex:outputText value="{!wrapper.planActivity.Name}"/>
+									</apex:column>
+								</apex:pageBlockTable>
+								</div>
+								</td>
+		    				</tr>
+		    				</table>
+    						</apex:outputPanel>
+    					</td>
+	    			</tr>
+			   	 </apex:repeat>
+			   	 	<!-- 
+			   	 	<tr>
+			   	 		<td colspan="2" style="width:100%;">
+							<p>Custom Activity:</p> 
+			        		<apex:inputTextarea id="First_Custom_Activity" value="{!firstTabDescription}" styleClass="description"/>
+			   	 		</td>
+			   	 	</tr>
+			   	 	 -->
+			   	 	<tr>
+			   	 		<td colspan="3">
+			   	 			<apex:outputpanel id="firstCustomOutputPanel">
+				   	 			<apex:pageBlockTable value="{!firstTabCustomActivityList}" title="Customers Activity" var="ap" width="100%" id="firstTabCustomActivityTable">
+									<apex:column headerValue="Action" width="8%">
+										<apex:outputText value="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" rendered="{!ap.disabled}" escape="false"/>
+										<apex:commandLink action="{!deleteRow}" value="Delete" reRender="firstCustomOutputPanel" rendered="{!!ap.disabled}">
+											<apex:param name="firstParam" assignTo="{!tabIndex}" value="0" />
+											<apex:param name="secondParam" value="{!ap.index}" assignTo="{!deleteIndex}"/>
+										</apex:commandLink>
+										&nbsp;&nbsp;&nbsp;
+										<apex:commandLink value="Add" action="{!addRow}"   reRender="firstCustomOutputPanel">
+											<apex:param name="firstParam" assignTo="{!tabIndex}" value="0" />
+										</apex:commandLink>
+									</apex:column>
+									<apex:column headerValue="Description">
+										<apex:inputText value="{!ap.description}" styleClass="inputText" disabled="{!ap.disabled}"/>
+									</apex:column>
+								</apex:pageBlockTable>
+			   	 			</apex:outputpanel>
+			   	 		</td>
+			   	 	</tr>
+				</table>
+				
+			</apex:tab>
+			
+			<apex:tab label="{!primaryGoalList[1]}" name="EnhanceClientService" id="EnhanceClientService" style="padding:0;">
+				<table class="mainTable" id="secondTabTable">
+					<tr>
+						<td colspan="3">
+							<p style="color: rgb(0,0, 128);">Please select the activities you would like this segment to focus on in the coming year.  Once your plan is completed, you can individualize the approach for each FA.</p>
+							<br/>
+						</td>
+					</tr>
+					<tr>
+			   	 		<td colspan="3" style="width:100%;">
+							<table style="width:100%;">
+			        			<tr>
+			        				<td>
+					        		<table summary="" class="list headerTable">
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:18%;"><div>Customer Name</div></th>
+											<th class="headerRow  " scope="col" colspan="1" style="width:15%;"><div>Branch</div></th>
+											<th class="headerRow  " scope="col" colspan="1" style="width:7%;"><div>Quadrant</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan New Key HH</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan Lending</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan Advisory</div></th>
+											<th class="headerRow numberCol" scope="col" colspan="1" ><div>Plan Sales Revenue</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			        				</td>
+			        			</tr>
+			        			<tr>
+			        				<td>
+			        				<div class="contentDiv">
+					        		<apex:pageBlockTable value="{!secondTabCustomerTableList}" title="Customers" var="ap" width="100%" id="secondTabCustomerTable">
+										<apex:column headerValue="Customer Name" width="18%">
+											<apex:outputLink value="/{!ap.FA_Goal__r.FA__r.Id}" target="_blank">
+												<apex:outputField value="{!ap.FA_Goal__r.FA__r.Name}"/>
+											</apex:outputLink>
+										</apex:column>
+										<apex:column headerValue="Branch" width="15%">
+											<apex:outputLink value="/{!ap.FA_Goal__r.FA__r.Account.Id}" target="_blank">
+												<apex:outputText value="{!ap.FA_Goal__r.FA__r.Account.Name}"/>
+											</apex:outputLink>
+										</apex:column>
+										<apex:column headerValue="Quadrant" width="7%">
+											<apex:outputField value="{!ap.FA_Goal__r.BP_Quadrant__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan New Key HH" width="15%" styleClass="numberCol">
+											<apex:outputText value="{!ap.FA_Goal__r.Plan_New_Key_HHs__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Lending" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Lending__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Advisory" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Advisory_Net_Flows__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Sales Revenue" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Net_Income__c}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+			        				</div>
+			        				</td>
+			        			</tr>
+			        		</table>
+			   	 		</td>
+			   	 	</tr>
+			   	 	<tr class="splitter"><td colspan="3"></td></tr>
+			    	<apex:repeat value="{!secondTabWrapperList}" var="key" >
+    					<tr>
+    						<td class="contentDiv subTable">
+    							<apex:outputPanel rendered="{!key.oddList != null}">
+		    					<table style="width:100%;">
+		    						<tr>
+				    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.oddTitle}" /></th>
+				    				</tr>
+				    				<tr>
+				    					<td>
+				    					<table summary="" class="list headerTable">
+											<tr class="headerRow ">
+												<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+												<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+												<th class="lastTh"></th>
+											</tr>
+										</table>	
+				    					</td>
+				    				</tr>
+				    				<tr>
+				    					<td>
+				    					<div class="contentDiv">
+				    					<apex:pageBlockTable value="{!key.oddList}" var="wrapper" width="100%" style="overflow-y: auto;">
+											<apex:column headerValue="Select" width="5%" styleClass="column">
+												<apex:inputCheckbox value="{!wrapper.isSelected}"/>
+											</apex:column>
+											<apex:column headerValue="Plan Activity Name" styleClass="column">
+												<apex:outputText value="{!wrapper.planActivity.Name}"/>
+											</apex:column>
+										</apex:pageBlockTable>
+										</div>
+										</td>
+				    				</tr>
+		    					</table>
+		    					</apex:outputPanel>
+    						</td>
+    						<td class="contentDiv subTable">
+	    						<apex:outputPanel rendered="{!key.thirdList != null}">
+		   						<table style="width:100%;">
+		   						<tr>
+			    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.thirdTitle}" /></th>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<table summary="" class="list headerTable">
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+											<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			    					</td>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<div class="contentDiv" id="{!key.Id}third">
+		    						<apex:pageBlockTable value="{!key.thirdList}" var="wrapper" width="100%">
+										<apex:column headerValue="Select" width="5%" styleClass="column">
+											<apex:inputCheckbox value="{!wrapper.isSelected}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Activity Name" styleClass="column">
+											<apex:outputText value="{!wrapper.planActivity.Name}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+									</div>
+									</td>
+			    				</tr>
+			    				</table>
+	    						</apex:outputPanel>
+	    					</td>
+	    					<td class="contentDiv">
+	    						<apex:outputPanel rendered="{!key.evenList != null}">
+		   						<table style="width:100%;">
+		   						<tr>
+			    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.evenTitle}" /></th>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<table summary="" class="list headerTable">
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+											<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			    					</td>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<div class="contentDiv">
+		    						<apex:pageBlockTable value="{!key.evenList}" var="wrapper" width="100%">
+										<apex:column headerValue="Select" width="5%">
+											<apex:inputCheckbox value="{!wrapper.isSelected}" styleClass="column"/>
+										</apex:column>
+										<apex:column headerValue="Plan Activity Name" styleClass="column">
+											<apex:outputText value="{!wrapper.planActivity.Name}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+									</div>
+									</td>
+			    				</tr>
+			    				</table>
+	    						</apex:outputPanel>
+	    					</td>
+	    			</tr>
+			   	 </apex:repeat>
+			   	 	<!-- 
+			   	 	<tr>
+			   	 		<td colspan="2" style="width:100%;">
+							<p>Custom Activity:</p> 
+        					<apex:inputTextarea id="Second_Custom_Activity" value="{!secondTabDescription}" styleClass="description"/><p/>
+			   	 		</td>
+			   	 	</tr>
+			   	 	-->
+			   	 	<tr>
+			   	 		<td colspan="3">
+			   	 			<apex:outputpanel id="secondCustomOutputPanel">
+				   	 			<apex:pageBlockTable value="{!secondTabCustomActivityList}" title="Customers Activity" var="ap" width="100%" id="secondTabCustomActivityTable">
+									<apex:column headerValue="Action" width="8%">
+										<apex:outputText value="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" rendered="{!ap.disabled}" escape="false"/>
+										<apex:commandLink action="{!deleteRow}" value="Delete" reRender="secondCustomOutputPanel" rendered="{!!ap.disabled}">
+											<apex:param name="firstParam" assignTo="{!tabIndex}" value="1" />
+											<apex:param name="secondParam" value="{!ap.index}" assignTo="{!deleteIndex}"/>
+										</apex:commandLink>
+										&nbsp;&nbsp;&nbsp;
+										<apex:commandLink action="{!addRow}" value="Add" reRender="secondCustomOutputPanel">
+											<apex:param name="firstParam" assignTo="{!tabIndex}" value="1" />
+										</apex:commandLink>
+									</apex:column>
+									<apex:column headerValue="Description">
+										<apex:inputText value="{!ap.description}" styleClass="inputText" disabled="{!ap.disabled}"/>
+									</apex:column>
+								</apex:pageBlockTable>
+							</apex:outputpanel>
+			   	 		</td>
+			   	 	</tr>
+				</table>
+			</apex:tab>
+			
+			<apex:tab label="{!primaryGoalList[2]}" name="ComprehensiveWealthManagement" id="ComprehensiveWealthManagement" style="padding:0;">
+				<table class="mainTable" id="thirdTabTable">
+					<tr>
+						<td colspan="3">
+							<p style="color: rgb(0,0, 128);">Please select the activities you would like this segment to focus on in the coming year.  Once your plan is completed, you can individualize the approach for each FA.</p>
+							<br/>
+						</td>
+					</tr>
+					<tr>
+			   	 		<td colspan="3" style="width:100%;">
+							<table style="width:100%;">
+			        			<tr>
+			        				<td>
+					        		<table summary="" class="list headerTable">
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:18%;"><div>Customer Name</div></th>
+											<th class="headerRow  " scope="col" colspan="1" style="width:15%;"><div>Branch</div></th>
+											<th class="headerRow  " scope="col" colspan="1" style="width:7%;"><div>Quadrant</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan New Key HH</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan Lending</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan Advisory</div></th>
+											<th class="headerRow numberCol" scope="col" colspan="1" ><div>Plan Sales Revenue</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			        				</td>
+			        			</tr>
+			        			<tr>
+			        				<td>
+			        				<div class="contentDiv">
+					        		<apex:pageBlockTable value="{!thirdTabCustomerTableList}" title="Customers" var="ap" width="100%" id="thirdTabCustomerTable">
+										<apex:column headerValue="Customer Name" width="18%">
+											<apex:outputLink value="/{!ap.FA_Goal__r.FA__r.Id}" target="_blank">
+												<apex:outputField value="{!ap.FA_Goal__r.FA__r.Name}"/>
+											</apex:outputLink>
+										</apex:column>
+										<apex:column headerValue="Branch" width="15%">
+											<apex:outputLink value="/{!ap.FA_Goal__r.FA__r.Account.Id}" target="_blank">
+												<apex:outputText value="{!ap.FA_Goal__r.FA__r.Account.Name}"/>
+											</apex:outputLink>
+										</apex:column>
+										<apex:column headerValue="Quadrant" width="7%">
+											<apex:outputField value="{!ap.FA_Goal__r.BP_Quadrant__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan New Key HH" width="15%" styleClass="numberCol">
+											<apex:outputText value="{!ap.FA_Goal__r.Plan_New_Key_HHs__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Lending" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Lending__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Advisory" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Advisory_Net_Flows__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Sales Revenue" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Net_Income__c}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+			        				</div>
+			        				</td>
+			        			</tr>
+			        		</table>
+			   	 		</td>
+			   	 	</tr>
+			   	 	<tr class="splitter"><td colspan="3"></td></tr>
+			    <apex:repeat value="{!thirdTabWrapperList}" var="key" >
+    				<tr>
+    					<td class="contentDiv subTable">
+    						<apex:outputPanel rendered="{!key.oddList != null}">
+	    					<table style="width:100%;">
+	    						<tr>
+			    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.oddTitle}" /></th>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<table summary="" class="list headerTable">
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+											<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			    					</td>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<div class="contentDiv">
+			    					<apex:pageBlockTable value="{!key.oddList}" var="wrapper" width="100%" style="overflow-y: auto;">
+										<apex:column headerValue="Select" width="5%" styleClass="column">
+											<apex:inputCheckbox value="{!wrapper.isSelected}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Activity Name" styleClass="column">
+											<apex:outputText value="{!wrapper.planActivity.Name}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+									</div>
+									</td>
+			    				</tr>
+	    					</table>
+	    					</apex:outputPanel>
+    						</td>
+    						
+    						<td class="contentDiv subTable">
+	    						<apex:outputPanel rendered="{!key.thirdList != null}">
+		   						<table style="width:100%;">
+		   						<tr>
+			    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.thirdTitle}" /></th>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<table summary="" class="list headerTable">
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+											<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			    					</td>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<div class="contentDiv" id="{!key.Id}third">
+		    						<apex:pageBlockTable value="{!key.thirdList}" var="wrapper" width="100%">
+										<apex:column headerValue="Select" width="5%" styleClass="column">
+											<apex:inputCheckbox value="{!wrapper.isSelected}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Activity Name" styleClass="column">
+											<apex:outputText value="{!wrapper.planActivity.Name}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+									</div>
+									</td>
+			    				</tr>
+			    				</table>
+	    						</apex:outputPanel>
+	    					</td>
+	    					
+	    					<td class="contentDiv">
+	    						<apex:outputPanel rendered="{!key.evenList != null}">
+		   						<table style="width:100%;">
+		   						<tr>
+			    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.evenTitle}" /></th>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<table summary="" class="list headerTable">
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+											<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			    					</td>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<div class="contentDiv">
+		    						<apex:pageBlockTable value="{!key.evenList}" var="wrapper" width="100%">
+										<apex:column headerValue="Select" width="5%" styleClass="column">
+											<apex:inputCheckbox value="{!wrapper.isSelected}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Activity Name" styleClass="column">
+											<apex:outputText value="{!wrapper.planActivity.Name}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+									</div>
+									</td>
+			    				</tr>
+			    				</table>
+	    						</apex:outputPanel>
+	    					</td>
+	    				</tr>
+			   	 </apex:repeat>
+			   	 	<!-- 
+			   	 	<tr>
+			   	 		<td colspan="2" style="width:100%;">
+							<p>Custom Activity:</p> 
+        					<apex:inputTextarea id="Third_Custom_Activity" value="{!thirdTabDescription}" styleClass="description"/>
+			   	 		</td>
+			   	 	</tr>
+			   	 	 -->
+			   	 	<tr>
+			   	 		<td colspan="3">
+			   	 			<apex:outputpanel id="thirdCustomOutputPanel">
+				   	 			<apex:pageBlockTable value="{!thirdTabCustomActivityList}" title="Customers Activity" var="ap" width="100%" id="thirdTabCustomActivityTable">
+									<apex:column headerValue="Action" width="8%">
+										<apex:outputText value="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" rendered="{!ap.disabled}" escape="false"/>
+										<apex:commandLink action="{!deleteRow}" value="Delete" reRender="thirdCustomOutputPanel" rendered="{!!ap.disabled}">
+											<apex:param name="firstParam" assignTo="{!tabIndex}" value="2" />
+											<apex:param name="secondParam" value="{!ap.index}" assignTo="{!deleteIndex}"/>
+										</apex:commandLink>
+										&nbsp;&nbsp;&nbsp;
+										<apex:commandLink action="{!addRow}" value="Add" reRender="thirdCustomOutputPanel">
+											<apex:param name="firstParam" assignTo="{!tabIndex}" value="2" />
+										</apex:commandLink>
+									</apex:column>
+									<apex:column headerValue="Description">
+										<apex:inputText value="{!ap.description}" styleClass="inputText" disabled="{!ap.disabled}"/>
+									</apex:column>
+								</apex:pageBlockTable>
+			   	 			</apex:outputpanel>
+			   	 		</td>
+			   	 	</tr>
+				</table>
+			</apex:tab>
+			<apex:tab label="{!primaryGoalList[3]}" name="OptimizePractice" id="OptimizePractice" style="padding:0;">
+				<table class="mainTable" id="fourthTabTable">
+					<tr>
+						<td colspan="3">
+							<p style="color: rgb(0,0, 128);">Please select the activities you would like this segment to focus on in the coming year.  Once your plan is completed, you can individualize the approach for each FA.</p>
+							<br/>
+						</td>
+					</tr>
+					<tr>
+			   	 		<td colspan="3" style="width:100%;">
+							<table style="width:100%;">
+			        			<tr>
+			        				<td>
+					        		<table summary="" class="list headerTable" >
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:18%;"><div>Customer Name</div></th>
+											<th class="headerRow  " scope="col" colspan="1" style="width:15%;"><div>Branch</div></th>
+											<th class="headerRow  " scope="col" colspan="1" style="width:7%;"><div>Quadrant</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan New Key HH</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan Lending</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan Advisory</div></th>
+											<th class="headerRow numberCol" scope="col" colspan="1" ><div>Plan Sales Revenue</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			        				</td>
+			        			</tr>
+			        			<tr>
+			        				<td>
+			        				<div class="contentDiv">
+					        		<apex:pageBlockTable value="{!fourthTabCustomerTableList}" title="Customers" var="ap" width="100%" id="fourthTabCustomerTable">
+										<apex:column headerValue="Customer Name" width="18%">
+											<apex:outputLink value="/{!ap.FA_Goal__r.FA__r.Id}" target="_blank">
+												<apex:outputField value="{!ap.FA_Goal__r.FA__r.Name}"/>
+											</apex:outputLink>
+										</apex:column>
+										<apex:column headerValue="Branch" width="15%">
+											<apex:outputLink value="/{!ap.FA_Goal__r.FA__r.Account.Id}" target="_blank">
+												<apex:outputText value="{!ap.FA_Goal__r.FA__r.Account.Name}"/>
+											</apex:outputLink>
+										</apex:column>
+										<apex:column headerValue="Quadrant" width="7%">
+											<apex:outputField value="{!ap.FA_Goal__r.BP_Quadrant__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan New Key HH" width="15%" styleClass="numberCol">
+											<apex:outputText value="{!ap.FA_Goal__r.Plan_New_Key_HHs__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Lending" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Lending__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Advisory" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Advisory_Net_Flows__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Sales Revenue" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Net_Income__c}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+			        				</div>
+			        				</td>
+			        			</tr>
+			        		</table>
+			   	 		</td>
+			   	 	</tr>
+			   	 	<tr class="splitter"><td colspan="3"></td></tr>
+			    <apex:repeat value="{!fourthTabWrapperList}" var="key" >
+    				<tr>
+    						<td class="contentDiv subTable">
+    						<apex:outputPanel rendered="{!key.oddList != null}">
+	    					<table style="width:100%;">
+	    						<tr>
+			    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.oddTitle}" /></th>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<table summary="" class="list headerTable">
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+											<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			    					</td>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<div class="contentDiv">
+			    					<apex:pageBlockTable value="{!key.oddList}" var="wrapper" width="100%" style="overflow-y: auto;">
+										<apex:column headerValue="Select" width="5%" styleClass="column">
+											<apex:inputCheckbox value="{!wrapper.isSelected}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Activity Name" styleClass="column">
+											<apex:outputText value="{!wrapper.planActivity.Name}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+									</div>
+									</td>
+			    				</tr>
+	    					</table>
+	    					</apex:outputPanel>
+    						</td>
+    						
+    						<td class="contentDiv subTable">
+	    						<apex:outputPanel rendered="{!key.thirdList != null}">
+			   						<table style="width:100%;">
+			   						<tr>
+				    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.thirdTitle}" /></th>
+				    				</tr>
+				    				<tr>
+				    					<td>
+				    					<table summary="" class="list headerTable">
+											<tr class="headerRow ">
+												<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+												<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+												<th class="lastTh"></th>
+											</tr>
+										</table>	
+				    					</td>
+				    				</tr>
+				    				<tr>
+				    					<td>
+				    					<div class="contentDiv">
+			    						<apex:pageBlockTable value="{!key.thirdList}" var="wrapper" width="100%">
+											<apex:column headerValue="Select" width="5%" styleClass="column">
+												<apex:inputCheckbox value="{!wrapper.isSelected}"/>
+											</apex:column>
+											<apex:column headerValue="Plan Activity Name" styleClass="column">
+												<apex:outputText value="{!wrapper.planActivity.Name}"/>
+											</apex:column>
+										</apex:pageBlockTable>
+										</div>
+										</td>
+				    				</tr>
+				    				</table>
+	    						</apex:outputPanel>
+	    					</td>
+    						
+	    					<td class="contentDiv subTable">
+	    						<apex:outputPanel rendered="{!key.evenList != null}">
+			   						<table style="width:100%;">
+			   						<tr>
+				    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.evenTitle}" /></th>
+				    				</tr>
+				    				<tr>
+				    					<td>
+				    					<table summary="" class="list headerTable">
+											<tr class="headerRow ">
+												<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+												<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+												<th class="lastTh"></th>
+											</tr>
+										</table>	
+				    					</td>
+				    				</tr>
+				    				<tr>
+				    					<td>
+				    					<div class="contentDiv">
+			    						<apex:pageBlockTable value="{!key.evenList}" var="wrapper" width="100%">
+											<apex:column headerValue="Select" width="5%" styleClass="column">
+												<apex:inputCheckbox value="{!wrapper.isSelected}"/>
+											</apex:column>
+											<apex:column headerValue="Plan Activity Name" styleClass="column">
+												<apex:outputText value="{!wrapper.planActivity.Name}"/>
+											</apex:column>
+										</apex:pageBlockTable>
+										</div>
+										</td>
+				    				</tr>
+				    				</table>
+	    						</apex:outputPanel>
+    						</td>
+	    			</tr>
+			   	 </apex:repeat>
+			   	 	<!-- 
+			   	 	<tr>
+			   	 		<td colspan="2" style="width:100%;">
+							<p>Custom Activity:</p> 
+        					<apex:inputTextarea id="Fourth_Custom_Activity" value="{!fourthTabDescription}" styleClass="description"/>
+			   	 		</td>
+			   	 	</tr>
+			   	 	 -->
+			   	 	<tr>
+			   	 		<td colspan="3">
+			   	 			<apex:outputpanel id="fourthCustomOutputPanel">
+				   	 			<apex:pageBlockTable value="{!fourthTabCustomActivityList}" title="Customers Activity" var="ap" width="100%" id="fourthTabCustomActivityTable">
+									<apex:column headerValue="Action" width="8%">
+										<apex:outputText value="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" rendered="{!ap.disabled}" escape="false"/>
+										<apex:commandLink action="{!deleteRow}" value="Delete" reRender="fourthCustomOutputPanel" rendered="{!!ap.disabled}">
+											<apex:param name="firstParam" assignTo="{!tabIndex}" value="3" />
+											<apex:param name="secondParam" value="{!ap.index}" assignTo="{!deleteIndex}"/>
+										</apex:commandLink>
+										&nbsp;&nbsp;&nbsp;
+										<apex:commandLink action="{!addRow}" value="Add" reRender="fourthCustomOutputPanel">
+											<apex:param name="firstParam" assignTo="{!tabIndex}" value="3" />
+										</apex:commandLink>
+									</apex:column>
+									<apex:column headerValue="Description">
+										<apex:inputText value="{!ap.description}" styleClass="inputText" disabled="{!ap.disabled}"/>
+									</apex:column>
+								</apex:pageBlockTable>
+			   	 			</apex:outputpanel>
+			   	 		</td>
+			   	 	</tr>
+				</table>
+			</apex:tab>
+			<apex:tab label="{!primaryGoalList[4]}" name="other" id="other" style="padding:0;">
+				<table class="mainTable" id="fifthTabTable">
+					<tr>
+						<td colspan="3">
+							<p style="color: rgb(0,0, 128);">Please select the activities you would like this segment to focus on in the coming year.  Once your plan is completed, you can individualize the approach for each FA.</p>
+							<br/>
+						</td>
+					</tr>
+					<tr>
+			   	 		<td colspan="3" style="width:100%;">
+							<table style="width:100%;">
+			        			<tr>
+			        				<td>
+					        		<table summary="" class="list headerTable" >
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:18%;"><div>Customer Name</div></th>
+											<th class="headerRow  " scope="col" colspan="1" style="width:15%;"><div>Branch</div></th>
+											<th class="headerRow  " scope="col" colspan="1" style="width:7%;"><div>Quadrant</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan New Key HH</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan Lending</div></th>
+											<th class="headerRow  numberCol" scope="col" colspan="1" style="width:15%;"><div>Plan Advisory</div></th>
+											<th class="headerRow numberCol" scope="col" colspan="1" ><div>Plan Sales Revenue</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			        				</td>
+			        			</tr>
+			        			<tr>
+			        				<td>
+			        				<div class="contentDiv">
+					        		<apex:pageBlockTable value="{!fifthTabCustomerTableList}" title="Customers" var="ap" width="100%" id="fifthTabCustomerTable">
+										<apex:column headerValue="Customer Name" width="18%">
+											<apex:outputLink value="/{!ap.FA_Goal__r.FA__r.Id}" target="_blank">
+												<apex:outputField value="{!ap.FA_Goal__r.FA__r.Name}"/>
+											</apex:outputLink>
+										</apex:column>
+										<apex:column headerValue="Branch" width="15%">
+											<apex:outputLink value="/{!ap.FA_Goal__r.FA__r.Account.Id}" target="_blank">
+												<apex:outputText value="{!ap.FA_Goal__r.FA__r.Account.Name}"/>
+											</apex:outputLink>
+										</apex:column>
+										<apex:column headerValue="Quadrant" width="7%">
+											<apex:outputField value="{!ap.FA_Goal__r.BP_Quadrant__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan New Key HH" width="15%" styleClass="numberCol">
+											<apex:outputText value="{!ap.FA_Goal__r.Plan_New_Key_HHs__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Lending" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Lending__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Advisory" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Advisory_Net_Flows__c}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Sales Revenue" width="15%" styleClass="numberCol">
+											<apex:outputField value="{!ap.FA_Goal__r.Plan_Net_Income__c}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+			        				</div>
+			        				</td>
+			        			</tr>
+			        		</table>
+			   	 		</td>
+			   	 	</tr>
+			   	 	<tr class="splitter"><td colspan="3"></td></tr>
+					<apex:repeat value="{!fifthTabWrapperList}" var="key" >
+    					<tr>
+    						<td class="contentDiv subTable">
+    						<apex:outputPanel rendered="{!key.oddList != null}">
+	    					<table style="width:100%;">
+	    						<tr>
+			    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.oddTitle}" /></th>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<table summary="" class="list headerTable">
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+											<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			    					</td>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<div class="contentDiv">
+			    					<apex:pageBlockTable value="{!key.oddList}" var="wrapper" width="100%" style="overflow-y: auto;">
+										<apex:column headerValue="Select" width="5%" styleClass="column">
+											<apex:inputCheckbox value="{!wrapper.isSelected}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Activity Name" styleClass="column">
+											<apex:outputText value="{!wrapper.planActivity.Name}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+									</div>
+									</td>
+			    				</tr>
+	    					</table>
+	    					</apex:outputPanel>
+    						</td>
+    						
+    						<td class="contentDiv subTable">
+	    						<apex:outputPanel rendered="{!key.thirdList != null}">
+			   						<table style="width:100%;">
+			   						<tr>
+				    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.thirdTitle}" /></th>
+				    				</tr>
+				    				<tr>
+				    					<td>
+				    					<table summary="" class="list headerTable">
+											<tr class="headerRow ">
+												<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+												<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+												<th class="lastTh"></th>
+											</tr>
+										</table>	
+				    					</td>
+				    				</tr>
+				    				<tr>
+				    					<td>
+				    					<div class="contentDiv">
+			    						<apex:pageBlockTable value="{!key.thirdList}" var="wrapper" width="100%">
+											<apex:column headerValue="Select" width="5%" styleClass="column">
+												<apex:inputCheckbox value="{!wrapper.isSelected}"/>
+											</apex:column>
+											<apex:column headerValue="Plan Activity Name" styleClass="column">
+												<apex:outputText value="{!wrapper.planActivity.Name}"/>
+											</apex:column>
+										</apex:pageBlockTable>
+										</div>
+										</td>
+				    				</tr>
+				    				</table>
+	    						</apex:outputPanel>
+	    					</td>
+    					
+	    					<td class="contentDiv">
+    						<apex:outputPanel rendered="{!key.evenList != null}">
+		   						<table style="width:100%;">
+		   						<tr>
+			    					<th colspan="2" style="text-align: center;"><apex:outputText value="{!key.evenTitle}" /></th>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<table summary="" class="list headerTable">
+										<tr class="headerRow ">
+											<th class="headerRow  " scope="col" colspan="1" style="width:5%;"><div>Select</div></th>
+											<th class="headerRow  " scope="col" colspan="1"><div>Plan Activity Name</div></th>
+											<th class="lastTh"></th>
+										</tr>
+									</table>	
+			    					</td>
+			    				</tr>
+			    				<tr>
+			    					<td>
+			    					<div class="contentDiv">
+		    						<apex:pageBlockTable value="{!key.evenList}" var="wrapper" width="100%">
+										<apex:column headerValue="Select" width="5%" styleClass="column">
+											<apex:inputCheckbox value="{!wrapper.isSelected}"/>
+										</apex:column>
+										<apex:column headerValue="Plan Activity Name" styleClass="column">
+											<apex:outputText value="{!wrapper.planActivity.Name}"/>
+										</apex:column>
+									</apex:pageBlockTable>
+									</div>
+									</td>
+			    				</tr>
+			    				</table>
+    						</apex:outputPanel>
+    					</td>
+	    			</tr>
+			   	 </apex:repeat>
+			   	 	<!-- 
+			   	 	<tr>
+			   	 		<td colspan="2" style="width:100%;">
+							<p>Custom Activity:</p> 
+        					<apex:inputTextarea id="Fifth_Custom_Activity" value="{!fifthTabDescription}" styleClass="description"/>
+			   	 		</td>
+			   	 	</tr>
+			   	 	 -->
+			   	 	<tr>
+			   	 		<td colspan="3">
+			   	 			<apex:outputpanel id="fifthCustomOutputPanel">
+				   	 			<apex:pageBlockTable value="{!fifthTabCustomActivityList}" title="Customers Activity" var="ap" width="100%" id="fifthTabCustomActivityTable">
+									<apex:column headerValue="Action" width="8%">
+										<apex:outputText value="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" rendered="{!ap.disabled}" escape="false"/>
+										<apex:commandLink action="{!deleteRow}" value="Delete" reRender="fifthCustomOutputPanel" rendered="{!!ap.disabled}">
+											<apex:param name="firstParam" assignTo="{!tabIndex}" value="4" />
+											<apex:param name="secondParam" value="{!ap.index}" assignTo="{!deleteIndex}"/>
+										</apex:commandLink>
+										&nbsp;&nbsp;&nbsp;
+										<apex:commandLink action="{!addRow}" value="Add" reRender="fifthCustomOutputPanel">
+											<apex:param name="firstParam" assignTo="{!tabIndex}" value="4" />
+										</apex:commandLink>
+									</apex:column>
+									<apex:column headerValue="Description">
+										<apex:inputText value="{!ap.description}" styleClass="inputText" disabled="{!ap.disabled}"/>
+									</apex:column>
+								</apex:pageBlockTable>
+			   	 			</apex:outputpanel>
+			   	 		</td>
+			   	 	</tr>
+				</table>
+			</apex:tab>
+		</apex:tabPanel>
+		</apex:pageBlock>
+	</apex:form>
+	
+<!-- 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> -->
+	<apex:includeScript value="{!$Resource.jQuery10}"/>
+	<script type="text/javascript">
+		$.noConflict();
+		var isChecked;
+		jQuery(document).ready(function($) {
+			$(".contentDiv").each(function() {
+				$(this).children('table').children('thead').remove();
+			});
+			
+			$(".selectAll").click(function() {
+				isChecked = $(this).is(":checked");
+				var position = $(this).attr("position")
+				var divId = "";
+				if(position ==  "left") {
+					divId = $(this).attr("id") + "odd";
+				}
+				if(position ==  "right") {
+					divId = $(this).attr("id") + "right";
+				}
+				$("#"+divId).find("input[type=checkbox]").each(function() {
+// 					if(isChecked ==  true) {
+// 						$(this).attr("checked", true);
+// 					}else {
+// 						$(this).attr("checked", false);
+// 					};
+				});
+			});
+		});
+		
+	</script>
+	
+</apex:page>

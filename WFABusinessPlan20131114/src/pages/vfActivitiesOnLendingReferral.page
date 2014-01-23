@@ -1,0 +1,38 @@
+<apex:page showHeader="false" sidebar="false" standardController="Lending_Referrals__c" extensions="vfActivitiesOnRecordCtrlr">
+
+<apex:pageblock >
+
+<apex:pageblockTable value="{!Activities}" var="t">
+
+    <apex:column >
+        <apex:facet name="header">Action</apex:facet>
+        <apex:outputLink value="/{!t.id}/e?retURL=%2F{!RecordID}&saveURL=%2F{!RecordID}" target="_Parent">Edit</apex:outputLink>                      
+    </apex:column>
+    <apex:column >
+        <apex:facet name="header">Last Modified</apex:facet>
+            <apex:outputText value="{0,date,M/d/yyyy}">
+                <apex:param value="{!t.LastModifiedDate}" />
+            </apex:outputText>
+    </apex:column>
+    <apex:column >
+        <apex:facet name="header">Status</apex:facet>
+        {!t.Status}
+    </apex:column>
+    <apex:column >
+        <apex:facet name="header">Assigned To</apex:facet>
+        {!t.Owner.Name}
+    </apex:column>
+    <apex:column >
+        <apex:facet name="header">Subject</apex:facet>
+        <apex:outputLink value="/{!t.id}" target="_Parent">{!t.Subject}</apex:outputLink>
+    </apex:column>    
+    <apex:column >
+        <apex:facet name="header">Comments</apex:facet>
+        {!t.Description}
+    </apex:column>
+    
+</apex:pageblockTable>
+
+</apex:pageblock>
+
+</apex:page>

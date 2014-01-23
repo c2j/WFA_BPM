@@ -1,0 +1,8 @@
+<apex:page standardController="Leadership_Plan__c" extensions="BPLeadershipPlanCon" action="{!execute}">
+	<apex:stylesheet value="{!$Resource.BoMPlanMaster}" />
+	<apex:messages styleClass="operationMessage" />
+		<apex:form >
+			<apex:commandButton action="{!gotoLeadershipPlan}" style="margin-left: 60px;margin-top: 10px;" value="Go Back to Leadership Plan" id="theButton"/>
+			<apex:commandButton action="{!gotoBoMPlan}" value="Proceed to BoM Plan" id="theBoMPlanButton" rendered="{!bomPlanId!=null}"/>
+		</apex:form>
+</apex:page>

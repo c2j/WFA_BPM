@@ -1,0 +1,76 @@
+<apex:page id="thePage" controller="BPAdminCon" tabStyle="BoM_Plan_Admin__tab">
+	<apex:stylesheet value="{!$Resource.BoMPlanMaster}" />
+	<style type="text/css">
+		.pageBlockSection{
+			padding: 20px;
+		}
+    </style>
+    <script>
+    	function checkInfo(selectIndex) {
+    		var msg = "";
+    		var year = document.getElementById("{!$Component.theForm.thePageBlock.theSelectList}").value;
+    		//document.getElementById("{!$Component.theForm.thePageBlock.theSelectList}");
+    		if(selectIndex == 1) {
+    			msg = "Do you want to start the plan for " + year + "?";
+    		}
+    		if(selectIndex == 2) {
+    			msg = "Do you want to close the plan for " + year + "?";
+    		}
+    		if(selectIndex == 3) {
+    			msg = "Do you want to cleanup the plan for " + year + "?";
+    		}
+    		if(selectIndex == 4) {
+    			msg = "Do you want to grant manager access for " + year + "?";
+    		}
+    		if(selectIndex == 5) {
+    			msg = "Do you want to update user manager for " + year + "?";
+    		}
+    		if(confirm(msg)) {
+    			return true;
+    		}else {
+	    		return false;
+    		}
+    	}
+    </script>
+    <apex:messages styleClass="operationMessage"/>
+    <apex:form id="theForm">
+	    <apex:pageBlock title="Manage BoM Plans" mode="edit" id="thePageBlock">
+			<div class="pageBlockSection">
+		    	<apex:selectList size="1" value="{!selectedYear}" multiselect="false" id="theSelectList">
+						<apex:selectOptions value="{!yearList}"/>
+			    </apex:selectList>
+		    	<apex:commandButton action="{!startBoMPlan}" value="Start BoM Plan" onclick="return checkInfo(1);"/>
+		    	<apex:commandButton action="{!closeBoMPlan}" value="Close BoM Plan" onclick="return checkInfo(2);"/>
+		    	<apex:commandButton action="{!cleanupBoMPlan}" value="Cleanup BoM Plan" onclick="return checkInfo(3);"/>
+		    	<apex:commandButton action="{!grantManagerAccess}" value="Grant Manager Access" onclick="return checkInfo(4);"/>
+		    	<apex:commandButton action="{!updateUserManager}" value="Update User Manager" onclick="return checkInfo(5);"/>
+	    	</div>
+	    </apex:pageBlock>
+	    <apex:pageBlock title="Process Errors" id="msgAccessPageBlock" rendered="{!grantErrorList != null}">
+	        <apex:pageBlockTable value="{!grantErrorList}" var="item">
+	            <apex:column headerValue="Main Branch / Complex / Market / Region"> 
+	            	<apex:outputLink value="/{!item.errorId}" target="_blank"><apex:outputText value="{!item.errorName}"/></apex:outputLink>
+	            </apex:column>
+	            <apex:column headerValue="Customer"> 
+	            	<apex:outputLink value="/{!item.customerId}" target="_blank"><apex:outputText value="{!item.customerName}"/></apex:outputLink>
+	            </apex:column>
+	            <apex:column headerValue="Detail"> 
+	            	<apex:outputText value="{!item.errorDetail}"/>
+	            </apex:column>
+	        </apex:pageBlockTable> 
+	    </apex:pageBlock>
+	    <apex:pageBlock title="Process Result Message" id="msgPageBlock" rendered="{!updateErrorList != null}"> 
+	        <apex:pageBlockTable value="{!updateErrorList}" var="item">
+	            <apex:column headerValue="Customer"> 
+	            	<apex:outputLink value="/{!item.errorId}" target="_blank"><apex:outputText value="{!item.errorName}"/></apex:outputLink>
+	            </apex:column>
+	            <apex:column headerValue="Manager"> 
+	            	<apex:outputLink value="/{!item.customerId}" target="_blank"><apex:outputText value="{!item.customerName}"/></apex:outputLink>
+	            </apex:column>
+	            <apex:column headerValue="Detail"> 
+	            	<apex:outputText value="{!item.errorDetail}"/>
+	            </apex:column>
+	        </apex:pageBlockTable> 
+	    </apex:pageBlock>
+	</apex:form>
+</apex:page>

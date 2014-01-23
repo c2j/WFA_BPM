@@ -1,0 +1,235 @@
+<apex:page sidebar="false" showheader="false" standardController="SFDC_Special_Event__c" extensions="vfFASeminarFeedbackCtrlr">
+
+<script language="javascript" type="text/javascript">
+
+//var existingResponse = "{!ExistingSurveyResponse}";
+
+//window.onload = alert("hello");
+
+window.onload = function() {
+    
+    if(!window.location.hash) {
+        window.location = window.location + '#rf';
+        window.location.reload();
+    }
+}
+
+</script>
+<style>
+
+.NoSurveyMsg {
+font-size:150%;
+font-family:Georgia;
+font-weight:bold;
+text-align:center;
+</style>
+
+
+<apex:form >
+
+<apex:image value="{!$Resource.WFALogo}" height="100px" width="200px"/>
+
+<apex:outputPanel id="SeminarFeedback">
+    
+    <apex:pageblock rendered="{!AND(NOT(FeedbackSubmitted),SurveyDisabled)}">
+        <div Class="NoSurveyMsg">The survey response period for this order has ended.</div>
+    </apex:pageblock>
+    
+    <apex:pageblock title="Feedback on Seminar {!EventRecord.Event_ID_Number__c} Hosted By {!PrimaryHost.Attendee__r.FirstName} {!PrimaryHost.Attendee__r.LastName}"
+    rendered="{!AND(NOT(FeedbackSubmitted),NOT(SurveyDisabled))}">
+        
+        <apex:pageblocksection title="Attendees" />
+        
+        <br/>
+        <div style="font-weight:bold; font-size:115%;margin-bottom:18px;">The prospects who RSVPed for your seminar are listed below. Please mark the appropriate attendance designation for each prospect, and update any incorrect information.</div>
+
+        <div style="Color:#BB0826;font-size:110%;font-weight:bold;margin-bottom:20px;">
+        <apex:outputpanel rendered="{!PCGFA}"><span style="font-size:120%;">*</span>Each household that RSVPd is enrolled in a four-part follow-up mail campaign to support your relationship-building efforts.
+        Prospects will NOT receive the mailings if you uncheck the box. See InfoMAX story name <a href="https://my.advisor-connection.com/infomax/PCG/Marketing/personal_marketing/seminar_express/post_seminar.aspx" style="color:blue">
+        Prospect Follow Up Mailings</a> to learn more.</apex:outputpanel></div>
+        
+
+        <apex:pageblocktable value="{!Attendees}" var="a">
+            <apex:column width="12%">
+                <apex:facet name="header">Prospect Last Name</apex:facet>
+                <apex:outputtext value="{!a.Prospect__r.Last_Name__c}"/>
+            </apex:column> 
+            <apex:column width="8%">
+                <apex:facet name="header">Prospect First Name</apex:facet>
+                <apex:outputtext value="{!a.Prospect__r.First_Name__c}"/>
+            </apex:column>            
+            <apex:column width="3%">
+                <apex:facet name="header">Party Size</apex:facet>
+                {!a.Party_Size__c}
+            </apex:column>             
+            <apex:column width="17%" >
+                <apex:facet name="header">Email</apex:facet>
+                <apex:outputtext value="{!a.Prospect_s_Email__c}" style="width:225px"/>
+            </apex:column> 
+            <apex:column width="7%">
+                <apex:facet name="header">Phone</apex:facet>
+                <apex:outputtext value="{!a.Prospect_s_Phone_Number__c}" style="width:100px"/>
+            </apex:column>                                       
+            <apex:column width="3%" style="text-align:center">
+                <apex:facet name="header">Attended</apex:facet>
+                <apex:inputField value="{!a.Attended_Event__c}" />
+            </apex:column>                     
+            <apex:column width="5%" style="text-align:center">
+                <apex:facet name="header">Set Up Appointment</apex:facet>
+                <apex:inputField value="{!a.Set_Up_Appointment__c}" />
+            </apex:column>               
+            <apex:column width="6%">
+                <apex:facet name="header">Appointment Date</apex:facet>
+                 <apex:inputField value="{!a.Prospect_Appointment_Date__c}"/>
+            </apex:column>
+            <apex:column width="4%" style="text-align:center" rendered="{!PCGFA}">
+                <apex:facet name="header"><span style="color:#BB0826;font-size:130%;font-weight:bold">*</span>Propsect Follow Up Mailings</apex:facet>
+                <apex:inputField value="{!a.Prospect_Follow_Up_Mailing__c}" />
+            </apex:column>           
+        </apex:pageblocktable>
+                
+        <apex:pageblocksection title="Feedback Questions" />
+        
+        <apex:outputpanel id="NewSurvey" rendered="{!ExistingSurveyResponse.size == 0}">
+        
+            <table cellpadding="5" >
+                <thead >
+                    <tr>
+                        <th colspan="4">Please rate your satisfaction with the following components of the Seminar Express program</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><apex:outputLabel >Customer service provided by the seminar solutions provider (RME): </apex:outputLabel></td>
+                        <td><apex:inputField value="{!SurveyResponse.Customer_Service_Provided_By_RME__c}" required="true" /></td>
+                        
+        
+                    </tr>
+                    <tr>
+                        <td><apex:outputLabel >Cost: </apex:outputLabel></td>
+                        <td><apex:inputField value="{!SurveyResponse.Seminar_Cost__c}" required="true" /></td>
+                     
+                    </tr>
+                    <tr>                
+                        <td><apex:outputLabel >RSVP Service: </apex:outputLabel></td>
+                        <td><apex:inputField value="{!SurveyResponse.RSVP_Service__c}" required="true" /></td>
+                    
+                    </tr>
+                    <tr>                
+                        <td><apex:outputLabel >Quality of prospects/attendees: </apex:outputLabel></td>
+                        <td><apex:inputField value="{!SurveyResponse.Quality_of_Prospects_Attendees__c}" required="true" /></td>
+                    </tr>
+                    <tr>                
+                        <td><apex:outputLabel >Printed materials (invitation, packets for attendees, etc): </apex:outputLabel></td>
+                        <td><apex:inputField value="{!SurveyResponse.Printed_Materials__c}" required="true" /></td>
+                    </tr>
+                    <tr>                
+                        <td><apex:outputLabel >Support from WFA FA Marketing Team: </apex:outputLabel></td>
+                        <td><apex:inputField value="{!SurveyResponse.Support_from_WFA_Marketing_Team__c}" required="true" /></td>
+                    </tr>
+                    <tr>                        
+                        <td><apex:outputLabel >Overall Seminar Express experience: </apex:outputLabel></td>
+                        <td><apex:inputField value="{!SurveyResponse.Overall_Seminar_Express_Experience__c}" required="true" /></td>
+                    </tr>
+                
+                <tr>
+                    <td><br/></td>
+                    <td><br/></td>
+                </tr>
+                <tr>                
+                    <td><apex:outputLabel >Do you believe that Seminar Express helped you make progress toward your Client Acquisition goals?: </apex:outputLabel></td>
+                    <td ><apex:inputField value="{!SurveyResponse.Did_Seminar_Help_With_Client_Acqusition__c}" required="true" /></td>   
+                </tr>
+                <tr>                
+                    <td><apex:outputLabel >Will you participate in the Seminar Express again?: </apex:outputLabel></td>
+                    <td ><apex:inputField value="{!SurveyResponse.Participate_in_Seminar_Express_Again__c}" required="true" /></td>           
+                </tr>
+                <tr>                
+                    <td><apex:outputLabel >Additional comments or feedback: </apex:outputLabel></td>
+                    <td ><apex:inputField value="{!SurveyResponse.Do_you_have_any_other_comments__c}" style="width:180%"/></td> 
+                </tr>
+                </tbody>
+            </table>
+        
+        </apex:outputpanel>
+        
+        <apex:outputpanel id="ExistingSurvey" rendered="{!ExistingSurveyResponse.size != 0}">
+        
+            <table cellpadding="5">
+                <thead >
+                    <tr>
+                        <th colspan="4">Please rate your satisfaction with the following components of the Seminar Express program</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><apex:outputLabel >Customer service provided by the seminar solutions provider (RME): </apex:outputLabel></td>
+                        <td><apex:inputField value="{!ExistingSurveyResponse[0].Customer_Service_Provided_By_RME__c}" /></td>
+                        
+                    </tr>
+                    <tr>
+                        <td><apex:outputLabel >Cost: </apex:outputLabel></td>
+                        <td><apex:inputField value="{!ExistingSurveyResponse[0].Seminar_Cost__c}" /></td>
+                     
+                    </tr>
+                    <tr>                
+                        <td><apex:outputLabel >RSVP Service: </apex:outputLabel></td>
+                        <td><apex:inputField value="{!ExistingSurveyResponse[0].RSVP_Service__c}" /></td>
+                    
+                    </tr>
+                    <tr>                
+                        <td><apex:outputLabel >Quality of prospects/attendees: </apex:outputLabel></td>
+                        <td><apex:inputField value="{!ExistingSurveyResponse[0].Quality_of_Prospects_Attendees__c}" /></td>
+                    </tr>
+                    <tr>                
+                        <td><apex:outputLabel >Printed materials (invitation, packets for attendees, etc): </apex:outputLabel></td>
+                        <td><apex:inputField value="{!ExistingSurveyResponse[0].Printed_Materials__c}" /></td>
+                    </tr>
+                    <tr>                
+                        <td><apex:outputLabel >Support from WFA FA Marketing Team: </apex:outputLabel></td>
+                        <td><apex:inputField value="{!ExistingSurveyResponse[0].Support_from_WFA_Marketing_Team__c}" /></td>
+                    </tr>
+                    <tr>                        
+                        <td><apex:outputLabel >Overall Seminar Express experience: </apex:outputLabel></td>
+                        <td><apex:inputField value="{!ExistingSurveyResponse[0].Overall_Seminar_Express_Experience__c}" /></td>
+                    </tr>
+                
+                <tr>
+                    <td><br/></td>
+                    <td><br/></td>
+                </tr>
+                <tr>                
+                    <td><apex:outputLabel >Do you believe that Seminar Express helped you make progress toward your Client Acquisition goals?: </apex:outputLabel></td>
+                    <td ><apex:inputField value="{!ExistingSurveyResponse[0].Did_Seminar_Help_With_Client_Acqusition__c}" /></td>   
+                </tr>
+                <tr>                
+                    <td><apex:outputLabel >Will you participate in the Seminar Express again?: </apex:outputLabel></td>
+                    <td ><apex:inputField value="{!ExistingSurveyResponse[0].Participate_in_Seminar_Express_Again__c}" /></td>           
+                </tr>
+                <tr>                
+                    <td><apex:outputLabel >Additional comments or feedback: </apex:outputLabel></td>
+                    <td ><apex:inputField value="{!ExistingSurveyResponse[0].Do_you_have_any_other_comments__c}" style="width:180%"/></td> 
+                </tr>
+                </tbody>
+            </table>
+        
+        </apex:outputpanel>        
+        <br/>
+        <br/>    
+        
+        <apex:pageMessages />
+                
+        <div style="text-align:center"><apex:commandButton value="Submit" action="{!SubmitFeedback}" reRender="SeminarFeedback"/></div>
+    </apex:pageblock>
+    
+    <apex:pageblock title="Submission Result" rendered="{!FeedbackSubmitted}" >
+        <span style="font-weight:bold;font-size:120%">Your submission been saved. Thank you for your feedback.</span>
+    </apex:pageblock>
+    
+</apex:outputpanel>
+
+
+
+</apex:form>
+
+</apex:page>

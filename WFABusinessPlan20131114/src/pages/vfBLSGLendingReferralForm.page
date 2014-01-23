@@ -1,0 +1,143 @@
+<apex:page controller="vfBLSGReferralFormCtrlr" showHeader="false" sidebar="false">
+<apex:image value="{!$Resource.WFALogo}" height="100px" width="200px"/>
+<style>
+
+ul li {
+margin:5px;
+font-size:120%;
+
+
+}
+
+p {
+font-size:125%;
+font-weight:bold;
+}
+
+a {
+font-size:110%
+}
+
+.RequiredItem {
+font-weight:bold;
+font-size:120%;
+color:#BB0826;
+}
+
+.disclaimer {
+font-style:italic;
+font-weight:normal;
+font-family:Georgia;
+}
+
+#disclaimer {
+
+margin:4px;
+padding:8px;
+}
+
+</style>
+<apex:form >
+
+<apex:pageblock title="Business Lending Referral Form">
+    <apex:pageMessages />
+    
+    <p style="text-align:center;">FAs must complete and submit this online form in order to receive compensation for a closed
+    loan/referral</p>
+    
+    <p >ATTENTION FA: When making a referral, you are required by law to verbally disclose the following
+    information to your clients:</p>
+    
+    <ul>
+        <li>
+            Within three business days, remember to foward the <a href="http://firstforms.wachovia.net/FORMSFILES/588743.dot" style="color:#3A5FCD">
+            Affiliate Disclosure Form</a> to the client for signature. 
+        </li>
+        <li>
+            You must verify that your clients do not have a confidentiality agreement with the firm.
+        </li>
+        <li>
+            Validate that you have discussed the following information with your clients.
+        </li>
+    </ul>    
+
+    <p>Please check the box next to each statement <span style="color:#BB0826;font-size:105%">(REQUIRED)</span>:</p>
+    
+    <div style="margin-bottom:25px">
+    <ul>
+        <li class="RequiredItem" >
+            <apex:inputCheckbox value="{!Referral.May_Receive_Financial_Or_Other_Benefit__c}" required="true"/>
+            <apex:outputLabel >I have notified my client that "Wells Fargo Advisors" and "Wells Fargo" are affiliated companies, 
+            and Wells Fargo Advisors and I may receive a financial or other benefit as a result of this referral. You are not required 
+            to use Wells Fargo Bank.</apex:outputLabel>
+        </li>
+        <li class="RequiredItem">
+            <apex:inputCheckbox value="{!Referral.Forward_ADF_to_Client__c}" required="true"/>
+            <apex:outputLabel >I have provided a copy of the Affiliate Discolsure Form to my client.</apex:outputLabel>
+        </li>
+        <li class="RequiredItem">
+            <apex:inputCheckbox value="{!Referral.Client_Gave_Permission_for_Referral__c}" required="true"/>
+            <apex:outputLabel >My client has given permission for this referral.</apex:outputLabel>
+        </li>
+        <li class="RequiredItem">
+            <apex:inputCheckbox value="{!Referral.Client_Gave_Permission_to_Share_Info__c}" required="true"/>
+            <apex:outputLabel >My client has given permission to share information.</apex:outputLabel>
+            </li>
+    </ul>
+    </div>
+    
+    <apex:pageblockSection title="FA Information">
+        <apex:inputfield value="{!Referral.FA_Name__c}" />
+        <apex:inputfield value="{!Referral.Rep_Code_To_Pay__c}" required="true"/>
+    </apex:pageblockSection>
+    
+    <apex:pageblockSection title="Business Profile">
+    
+        <apex:inputfield value="{!Referral.Business_Name__c}" />
+        <apex:inputfield value="{!Referral.Business_Address__c}" />
+        <apex:inputfield value="{!Referral.Business_City__c}" required="true"/>
+        <apex:inputfield value="{!Referral.Business_State__c}" required="true"/>
+        <apex:inputfield value="{!Referral.Business_Zip_Code__c}" />   
+        <apex:inputfield value="{!Referral.Industry_Type__c}" />
+        <apex:inputfield value="{!Referral.Years_In_Business__c}" />
+        <apex:inputfield value="{!Referral.Annual_Revenue__c}" />
+        <apex:inputfield value="{!Referral.Net_Profit__c}" />    
+    
+    </apex:pageblockSection>    
+
+    <apex:pageblockSection title="Loan Information">
+    
+        <apex:inputfield value="{!Referral.Loan_Amount__c}" required="true" />
+
+        <apex:inputfield value="{!Referral.Loan_Purpose__c}" required="true"/>
+        <apex:inputfield value="{!Referral.Collateral_Type__c}" />   
+        <apex:inputfield value="{!Referral.Product_Requested__c}" required="true"/>
+        <apex:inputfield value="{!Referral.Bank_Contact_First_Name__c}" />
+        <apex:inputfield value="{!Referral.Bank_Contact_Last_Name__c}" />        
+        <apex:inputfield value="{!Referral.Deal_Already_Channeled__c}" required="true"/>
+        <apex:inputfield value="{!Referral.Additional_Info_That_May_Expedite_Loan__c}" style="width:230px"/>    
+
+        <!--<apex:inputfield value="{!Referral.Loan_Close_Date__c}" />-->        
+        <!--<apex:inputfield value="{!Referral.Business_Unit__c}" />-->
+        <!--<apex:inputfield value="{!Referral.Product_Type__c}" />-->        
+    </apex:pageblockSection>   
+    
+    <apex:pageblockSection title="Client/Borrower Information">
+    
+        <apex:inputfield value="{!Referral.Borrower_Name__c}" required="true"/>
+        <apex:inputfield value="{!Referral.Client_Name__c}" required="true"/>
+        <apex:inputfield value="{!Referral.Client_Phone_Number__c}" required="true"/>
+        <apex:inputfield value="{!Referral.Existing_Client_WFC_Relationships__c}" style="width:230px"/>    
+
+    </apex:pageblockSection>   
+        
+    <div style="text-align:center; margin-top:20px"><apex:commandButton value="Submit" action="{!SubmitReferral}" /></div>
+
+</apex:pageblock>
+<div id="disclaimer" >
+<p class="disclaimer">NOTE: This form is for business financing only. The Lending &amp; Banking Services product suite is available exclusively to WFA clients.</p>
+<p class="disclaimer">Not all business financing services are available in all states. Before referring a client, check product availability in the state for which the loan or line of credit is requested. State restrictions currently prohibit payment of referral fees for deposits in the following states: Georgia, Idaho, Nevada, and New Mexico. State regulations currently prohibit payment of referral fees to non-bank employees for loans and lines secured by commercial real estate in the following states: California, Minnesota, and New Jersey. Referral form must be completed for final assessment and potential compensation.</p>
+</div>
+
+</apex:form>
+</apex:page>

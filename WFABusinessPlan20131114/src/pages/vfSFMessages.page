@@ -1,0 +1,90 @@
+<apex:page StandardController="System_Administrator_Controls__c" extensions="vfSFMessagesCtrlr" sidebar="false" showHeader="false" >
+
+<style>
+
+#Message {
+
+font-weight:bold;
+font-size:110%;
+margin:auto;
+padding:20px;
+width:600px;
+
+background: #8f8f8f; /* old browsers */
+background: -moz-linear-gradient(top, #f2f2f2 0%, #dedede 100%); /* firefox */
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f2f2f2), color-stop(100%,#dedede)); /* webkit */
+
+}
+
+#Header {
+font-weight:bold;
+font-size:135%;
+margin:2%;
+padding:20px;
+text-align:Center;
+color:#bb0826;
+}
+
+#Submit {
+margin-top:2%;
+text-align:Center;
+font-weight:bold;
+}
+
+</style>
+
+<script language="javascript" type="text/javascript">
+
+var ViewedMsg = "{!CrntUser.Viewed_System_Admin_Message__c}";
+var Exempted = "{!UserExempted}";
+
+
+function Check() {
+
+    if (ViewedMsg == "false" && Exempted == "false") {
+
+        MarkViewed();
+
+    }
+
+}
+
+window.onload = Check;
+
+</script>
+
+<apex:form >
+
+<apex:actionFunction name="MarkViewed" action="{!MarkAsViewed}"/>
+
+<apex:outputpanel > <!--rendered="{!NOT(CrntUser.Viewed_System_Admin_Message__c)}"-->
+
+<div id="Header">
+
+ATTENTION: Please review the message below, and click "Continue".
+</div>
+
+
+<table border="2" align="center" style="border-radius:5px">
+<tr>
+<td id="Message" >
+    <!--<apex:outputfield value="{!SysAdminCtrl.Message_For_Users__c}"/>-->
+    <apex:outputfield value="{!SysAdminCtrl.System_Admin_Message__c}"/>
+</td>
+</tr>
+</table>
+
+
+
+<div id="Submit">
+<apex:commandLink value="Continue" action="{!ContinueToHome}" style="font-size:125%"/>
+</div>
+
+</apex:outputpanel>
+
+
+</apex:form>
+
+
+
+</apex:page>

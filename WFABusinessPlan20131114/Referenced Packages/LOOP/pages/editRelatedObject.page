@@ -1,0 +1,125 @@
+<apex:page standardController="Loop__Related_Object__c" tabStyle="Loop__DDP__c" title="{!$ObjectType.Loop__Related_Object__c.label} Edit: {!IF(relObj.Id=='','New '&$ObjectType.Loop__Related_Object__c.label,relObj.Name)}" extensions="Loop.relatedObjectExt">
+    <style>
+        .helpLink {
+            text-decoration: underline;
+        }
+        .roList {
+            margin: 0 2px 2px 0;
+        }
+    </style>
+    <apex:sectionHeader title="{!$ObjectType.Loop__Related_Object__c.label} Edit" subtitle="{!IF(relObj.Id=='','New '&$ObjectType.Loop__Related_Object__c.label,relObj.Name)}" help="http://support.drawloop.com/salesforce/looplus/basic/related-objects/" />
+    <apex:actionRegion immediate="true">
+        <apex:outputPanel id="pgmsgs">
+            <apex:pageMessages />
+        </apex:outputPanel>
+        <apex:form >
+            <apex:pageBlock title="{!$ObjectType.Loop__Related_Object__c.label} Edit" mode="edit">
+                <apex:pageBlockButtons >
+                    <apex:commandButton value="Save" action="{!save}" reRender="pgmsgs" />
+                    <apex:commandButton value="Save and New" action="{!saveAndNew}" />
+                    <apex:commandButton value="Cancel" action="{!cancel}" />
+                </apex:pageBlockButtons>
+                <apex:pageBlockSection title="Information">
+                    <apex:pageBlockSectionItem helpText="Data from this object will be available in the {!$ObjectType.Loop__DDP__c.label}." >
+                        <apex:outputLabel for="relObjName" value="{!$ObjectType.Loop__Related_Object__c.label}" />
+                        <apex:outputPanel layout="block" styleClass="requiredInput">
+                            <apex:outputPanel layout="block" styleClass="requiredBlock" />
+                            <apex:selectList id="relObjName" size="1" value="{!relObj.Name}">
+                                <apex:selectOptions value="{!availableObjects}" />
+                                <apex:actionSupport event="onchange" action="{!relObjChange}" reRender="pgmsgs,parObjPanel,parObjFieldPanel,hierarchySelPanel,orderByRepeat,filterRepeat" status="relObjStatus" />
+                            </apex:selectList>
+                            <apex:actionStatus startText="• • •" stopText="" id="relObjStatus" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel for="ddp" value="{!$ObjectType.Loop__Related_Object__c.fields.Loop__DDP__c.label}" />
+                        <apex:outputPanel layout="block" styleClass="requiredInput">
+                            <apex:outputPanel layout="block" styleClass="requiredBlock" rendered="{!relObj.Id == null}" />
+                            <apex:inputField value="{!relObj.Loop__DDP__c}" id="ddp" required="false" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem helpText="{!$ObjectType.Loop__Related_Object__c.label} data will be available if related to this object.">
+                        <apex:outputLabel for="parObjName" value="{!$ObjectType.Loop__Related_Object__c.fields.Loop__Parent_Object__c.label}" />
+                        <apex:outputPanel layout="block" styleClass="requiredInput" id="parObjPanel">
+                            <apex:outputPanel layout="block" styleClass="requiredBlock" />
+                            <apex:selectList id="parObjName" size="1" value="{!relObj.Loop__Parent_Object__c}">
+                                <apex:selectOption itemLabel="--None--" itemValue="" />
+                                <apex:selectOptions value="{!parentObjects}" />
+                                <apex:actionSupport event="onchange" action="{!parObjChange}" reRender="pgmsgs,parObjFieldPanel" status="parObjStatus" />
+                            </apex:selectList>
+                            <apex:actionStatus startText="• • •" stopText="" id="parObjStatus" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField value="{!relObj.Loop__Related_Object_Alias__c}" />
+                    <apex:pageBlockSectionItem id="test" helpText="This is used if the Child-Parent relationship is ambiguous, i.e. there are multiple lookup / master-detail fields that can determine the Child-Parent relationship.">
+                        <apex:outputLabel for="parObjField" value="{!$ObjectType.Loop__Related_Object__c.fields.Loop__Parent_Object_Field__c.label}" />
+                        <apex:outputPanel id="parObjFieldPanel">
+                            <apex:selectList id="parObjField" size="1" value="{!relObj.Loop__Parent_Object_Field__c}">
+                                <apex:selectOption itemLabel="--None--" itemValue="" />
+                                <apex:selectOptions value="{!parentFieldSelect}" />
+                            </apex:selectList>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField value="{!relObj.Loop__Copy_Type__c}" />
+                    <apex:pageBlockSectionItem />
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel for="hierarchy" value="{!$ObjectType.Loop__Related_Object__c.fields.Loop__Hierarchy_Field__c.label}" />
+                        <apex:outputPanel id="hierarchySelPanel">
+                            <apex:selectList id="hierarchy" size="1" value="{!relObj.Loop__Hierarchy_Field__c}">
+                                <apex:selectOption itemLabel="--None--" itemValue="" />
+                                <apex:selectOptions value="{!hierarchyFieldSelect}" />
+                            </apex:selectList>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem />
+                    <apex:inputField value="{!relObj.Loop__Delete_Table__c}" />
+                </apex:pageBlockSection>
+                <apex:pageBlockSection columns="1" title="Order {!$ObjectType.Loop__Related_Object__c.label} by">
+                    <apex:outputPanel layout="block" id="orderByRepeat" styleClass="bFilterReport">
+                        <apex:repeat value="{!orderBys}" var="ob">
+                            <apex:outputPanel layout="block" styleClass="roListDiv">
+                                <apex:selectList id="obsel" size="1" value="{!ob.orderByField}" styleClass="roList">
+                                    <apex:selectOption itemLabel="--None--" itemValue="" />
+                                    <apex:selectOptions value="{!sortableFields}" />
+                                </apex:selectList>
+                                <span><apex:outputLabel for="desc" value="Descending" styleClass="roList" /></span>
+                                <apex:inputCheckbox id="desc" value="{!ob.descending}" styleClass="roList" />
+                            </apex:outputPanel>
+                        </apex:repeat>
+                        <apex:commandLink action="{!addOrderBy}" value="Add field" reRender="orderByRepeat" rendered="{!showOrderAdd}" />
+                    </apex:outputPanel>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection title="Filter Criteria" columns="1">
+                    <apex:outputPanel layout="block" id="filterRepeat" styleClass="bFilterReport">
+                        <apex:repeat value="{!filterCriteria}" var="fc">
+                            <apex:outputPanel layout="block">
+                                <span class="roList">{!fc.index}.</span>
+                                <apex:selectList id="fcfieldsel" size="1" value="{!fc.filterField}" styleClass="roList">
+                                    <apex:selectOption itemLabel="--None--" itemValue="" />
+                                    <apex:selectOptions value="{!availableFields}" />
+                                </apex:selectList>
+                                <apex:selectList size="1" value="{!fc.filterComparison}" styleClass="roList">
+                                    <apex:selectOptions value="{!filterCompSelOptions}" />
+                                </apex:selectList>
+                                <apex:inputText value="{!fc.filterValue}" styleClass="roList" />
+                            </apex:outputPanel>
+                        </apex:repeat>
+                    	<apex:outputPanel layout="block" style="width: 375px;">
+	                    	<apex:commandLink action="{!addFilter}" value="Add filter" reRender="filterRepeat" rendered="{!showFilterAdd}" />
+	                        <apex:outputLink value="javascript:openIntegration('{!JSENCODE($Page.Loop__fieldTagger)}?id={!relObj.Loop__DDP__c}','height=600,width=800,location=no,toolbar=no,status=no,menubar=no,scrollbars=1',1);"  style="float: right;">Field Tagger</apex:outputLink>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="block" style="margin-top: 1.5em;" styleClass="bFilterReport">
+                        Advanced Filter Conditions:<br />
+                        <apex:inputText value="{!relObj.Loop__Advanced_Filter_Conditions__c}" size="60" />
+                        <apex:outputLink value="/help/doc/en/working_with_advanced_filter_conditions_in_reports_and_list_views.htm" target="_blank" styleClass="tipsLink">
+                            <span class="helpLink">Tips</span>
+                            <img class="helpIcon" title="Help" alt="Help" src="/s.gif" />
+                        </apex:outputLink>
+                    </apex:outputPanel>
+                    <apex:inputField value="{!relObj.Loop__Record_Limit__c}" />
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:form>
+    </apex:actionRegion>
+</apex:page>

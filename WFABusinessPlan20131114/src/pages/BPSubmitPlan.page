@@ -1,0 +1,7 @@
+<apex:page standardController="BoM_Plan__c" extensions="BPBoMPlanExt" action="{!submitPlan}">
+	<apex:stylesheet value="{!$Resource.BoMPlanMaster}" />
+	<apex:messages styleClass="operationMessage" />
+		<apex:form >
+			<apex:commandButton action="{!gotoPlan}" style="margin-left: 60px;margin-top: 10px;" value="Go Back to Plan" id="theButton"/>
+		</apex:form>
+</apex:page>

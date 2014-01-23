@@ -1,0 +1,38 @@
+<apex:page standardcontroller="Account" extensions="McLaganChartController" sidebar="false">
+    <apex:PageMessages />
+     <apex:pageBlock rendered="{!data.size >0}">
+    <table width="100%">
+    <tr><td><apex:chart height="250" width="325" data="{!data}" animate="true" theme="Salesforce" >
+            <apex:legend position="top" font="9px Helvetica"/>
+            <apex:axis type="Numeric" position="left" fields="Production_Share"/>
+            <apex:axis type="Category" position="bottom" fields="name">
+            </apex:axis>
+            <apex:barSeries title="" orientation="vertical" axis="left"  xField="name" yField="Production_Share,FA_Share"/>
+        </apex:chart>
+        </td><td>
+        <apex:chart height="250" width="325" data="{!data}" animate="true" theme="Salesforce" >
+            <apex:legend position="top" font="9px Helvetica"/>
+            <apex:axis type="Numeric" position="left" fields="WFA"  title=""/>
+            <apex:axis type="Category" position="bottom" fields="name"/>
+            <apex:barSeries orientation="vertical" axis="left"  xField="name" yField="WFA,Other_Firm"/>
+        </apex:chart>
+        </td><td>
+        <apex:chart height="250" width="310" data="{!data}" >
+            <apex:axis type="Numeric" position="left" fields="PCT_Of_All_FA" grid="true"/>
+            <apex:axis type="Category" position="bottom" fields="name"/>
+            <apex:lineSeries axis="left" xField="name" yField="PCT_Of_All_FA" markerType="circle" strokewidth="1" strokecolor="black" highlightStrokeWidth="1"/>
+         </apex:chart>
+        </td></tr>
+        <tr>
+        <td align="center"><apex:outputText value="Production and FA Share (%)" style="font-weight:bold;"/></td>
+        <td align="center"><apex:outputText value="&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;" escape="false"/>
+        <apex:outputText value="Average FA Productivity ($000)" escape="false" style="font-weight:bold;"/>
+        </td>
+        <td align="center"><apex:outputText value="FA Productivity % of other firm" style="font-weight:bold;"/></td>
+        </tr>
+        <tr><td>&nbsp;</td><td></td><td></td></tr>
+    	<tr><td columnspan="3"><apex:outputText value="Other Firm: {!firmList}" style="font-weight:bold;"/>
+    	</td></tr>
+    	</table>
+    </apex:pageBlock>
+</apex:page>

@@ -1,0 +1,107 @@
+<apex:page id="thePage" standardController="BoM_Plan__c" extensions="BPFAActionPlanningCon" action="{!createFAActionPlan}">
+	<apex:stylesheet value="{!$Resource.BoMPlanMaster}" />
+    <style type="text/css">
+        .terminated {
+            color: red;
+            font-style: italic !important;
+        }
+        .lastTh {
+            min-width: 8px !important;
+            width: 8px !important;
+            border-left: 0px !important;
+        }
+        .image-padding {
+            padding-right: 24px !important;
+        }
+
+    </style>
+    <apex:messages styleClass="operationMessage"/>
+    <apex:form id="theForm">
+    	
+        <apex:pageBlock id="thePageBlock" title="FA Action Planning">
+        <apex:pageBlockButtons >
+<!--             <apex:commandButton action="{!createActionPlanElements}" value="Create FA Action Plans with Default Elements" /> -->
+            <apex:commandButton action="{!forward}" value="Proceed to Element Selection Wizard" />
+<!--             <apex:commandButton action="{!deleteActionPlan}" value="Delete Action Plan" /> -->
+<!--             <apex:commandButton action="{!deleteAll}" value="Delete All Action Plan Element" /> -->
+            <apex:commandButton action="{!cancel}" value="Go Back to Plan" />
+        </apex:pageBlockButtons>
+        <apex:outputPanel id="theTabPanel">
+        <div style="width: 100%;">
+        <table style="width: 100%;" >
+        	<!-- 
+            <tr>
+                <td>
+                    <table class="list" style="width:100%; border-spacing:0; border-collapse:collapse;">
+                        <thead class="rich-table-thead">
+                            <tr class="headerRow  ">
+                                <th class="headerRow  " scope="col" colspan="1" width="25%"><div>FA Name</div></th>
+                                <th class="headerRow  " scope="col" colspan="1" width="15%"><div>FA Photo</div></th>
+                                <th class="headerRow  " scope="col" colspan="1" width="30%"><div>BP Quadrant</div></th>
+                                <th class="headerRow  " scope="col" colspan="1"><div>Primary Goal</div></th>
+                                <th class="lastTh"></th>
+                            </tr>
+                        </thead>
+                    </table>
+                </td>
+            </tr>
+        	-->
+            <tr>
+                <td>
+                    <div style="overflow:auto;width:100%;" id="ContentDiv">
+                        <apex:pageBlockTable value="{!actionPlanWrapperList}" var="wrapper" id="theActionPlanPageBlockTable">
+                            <apex:column headerValue="FA Name" width="22%">
+                                     <apex:outputField value="{!wrapper.ap.FA_Goal__r.Ranking__c}" Rendered="{!wrapper.ap.FA_Goal__r.Ranking__c!=null}"/>
+                                     <apex:outputField value="{!wrapper.ap.FA_Goal__r.FA__c}" Rendered="{!wrapper.ap.FA_Goal__r.Ranking__c==null}"/>
+                                     &nbsp;<apex:outputText styleClass="terminated" value="No Ranking" Rendered="{!wrapper.ap.FA_Goal__r.Ranking__c==null}"/>
+                            </apex:column>
+                            <apex:column headerValue="Tag" width="3%">
+									 <apex:inputCheckbox value="{!wrapper.focus}"/>
+                            </apex:column>
+                            <apex:column headerValue="FA Photo" width="15%">
+                            	<apex:outputText value="{!wrapper.ap.FA_Goal__r.FA_Photo__c}" escape="false"/>
+                            </apex:column>
+                            <apex:column headerValue="BP Quadrant" width="30%">
+                                <!-- <apex:outputField value="{!wrapper.FA_Goal__r.BP_Quadrant__c}"/> -->
+                                <apex:outputLink value="{!quadrantLinkMap['Branch Manager Site']}" target="_blank" rendered="{!wrapper.ap.FA_Goal__r.BP_Quadrant__c == '1'}">
+	                                <apex:image value="/servlet/servlet.FileDownload?file=015W0000000DXx0"/>
+                                </apex:outputLink>
+                                <apex:outputLink value="{!quadrantLinkMap['Branch Manager Site']}" target="_blank" rendered="{!wrapper.ap.FA_Goal__r.BP_Quadrant__c == '2'}">
+	                                <apex:image value="/servlet/servlet.FileDownload?file=015W0000000DXx5"/>
+                                </apex:outputLink>
+                                <apex:outputLink value="{!quadrantLinkMap['Branch Manager Site']}" target="_blank" rendered="{!wrapper.ap.FA_Goal__r.BP_Quadrant__c == '3'}">
+	                                <apex:image value="/servlet/servlet.FileDownload?file=015W0000000DXxA"/>
+                                </apex:outputLink>
+                                <apex:outputLink value="{!quadrantLinkMap['Branch Manager Site']}" target="_blank" rendered="{!wrapper.ap.FA_Goal__r.BP_Quadrant__c == '4'}">
+	                                <apex:image value="/servlet/servlet.FileDownload?file=015W0000000DXxF"/>
+                                </apex:outputLink>
+                            </apex:column>
+                            <apex:column headerValue="Primary Goal">
+                                <!-- <apex:outputField value="{!wrapper.FA_Goal__r.Primary_Objective__c}"/> --> 
+                                <apex:selectList required="true" value="{!wrapper.ap.FA_Goal__r.Primary_Objective__c}" size="1">
+                                    <apex:selectOptions value="{!BPGoalItems}"/>
+                                </apex:selectList>
+<!--                                 <apex:inputField required="true" value="{!bomPlan.Status__c}"/> -->
+                            </apex:column>
+                        </apex:pageBlockTable>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        </div>
+        </apex:outputPanel>
+        </apex:pageBlock>
+    </apex:form>
+<!--     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> -->
+	<apex:includeScript value="{!$Resource.jQuery10}"/>
+    <script type="text/javascript">
+        $.noConflict();
+        jQuery(document).ready(function($) {
+            //var newKeyTable = $("*[id*=theActionPlanPageBlockTable]")[0];
+            //$(newKeyTable).children('thead').remove();
+
+        });
+        
+        
+    </script>
+</apex:page>

@@ -1,0 +1,29 @@
+<apex:page controller="vfSFPortalCtrlr" sidebar="false" showHeader="false">
+
+<script language="javascript" type="text/javascript">
+
+var FormType = "{!FormType}";
+
+function Check() {
+
+    if (FormType == 'BLSG'){
+
+        window.open("/apex/vfBLSGLendingReferralForm", "_parent");
+
+    }
+}
+
+window.onload = Check;
+
+</script>
+
+<!--<apex:form >-->
+<!--<c:vfNSCARForm rendered="{!IF(FormType == 'NSCAR',True, False)}" />-->
+
+<!--<c:vfBLSGLendingReferralForm rendered="{!IF(FormType == 'BLSG',True, False)}" />-->
+
+<!--<apex:commandLink value="BLSG" action="{!Redirect}"/>-->
+
+<!--</apex:form>-->
+
+</apex:page>

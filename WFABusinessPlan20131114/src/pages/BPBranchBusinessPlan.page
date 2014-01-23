@@ -1,0 +1,1009 @@
+<apex:page id="thePage" controller="BPBranchBusinessPlanCon" action="{!createAndDisplayFAGoals}" tabStyle="BoM_Plan__c" title="Edit FAGoal">
+    <apex:stylesheet value="{!$Resource.BoMPlanMaster}" />
+    <meta http-equiv="X-UA-Compatible" content="edge" />
+    <style type="text/css">
+    /* column container */
+    .colmask {
+        position: relative; /* This fixes the IE7 overflow hidden bug */
+        clear: both;
+        float: left;
+        width: 100%; /* width of whole page */
+        overflow: hidden; /* This chops off any overhanging divs */
+    }
+    
+    .colmask input {
+        width: 80%;
+        text-align: right;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+    
+    /* common column settings */
+    .colright,.colmid,.colleft {
+        float: left;
+        width: 100%;
+        position: relative;
+    }
+    
+    .col1,.col2,.col3 {
+        float: left;
+        position: relative;
+        padding: 0 0 0 0;
+        overflow: hidden;
+    }
+    
+    .col1 table tbody tr td:first-child font {
+        font-style: italic;
+    }
+    
+    /* 2 Column (left menu) settings */
+    .leftmenu {
+        
+    }
+    
+    .leftmenu .colleft {
+        right: 75%; /* right column width */
+    }
+    
+    .leftmenu .col1 {
+        width: 80%; /* right column content width */
+        left: 95%; /* 100% plus left column left padding */
+    }
+    
+    .leftmenu .col2 {
+        width: 20%;
+        /* left column content width (column width minus left and right padding) */
+        left: -6%;
+        /* (right column left and right padding) plus (left column left padding) */
+    }
+    
+    .colNumberStyle {
+        text-align: right;
+        white-space: normal !important;
+        word-wrap: break-word;
+    }
+    
+    .colInputNumberStyle {
+        text-align: right;
+        white-space: normal !important;
+        word-wrap: break-word;
+        background-color: #FFFFCC;
+    }
+    
+    .header-font {
+        font-size: 13px;
+    }
+    
+    .leftmenu .resourceList {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        padding-left: 20px;
+        max-width: 300px;
+        background: White;
+        border: 1px solid #E0E3E5;
+        padding-right: 10px;
+        text-align: left;
+    }
+    
+    .leftmenu .resourceList h2 {
+        margin: 0;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+    
+    .leftmenu .resourceList ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        margin-top: 5px;
+    }
+    
+    .leftmenu .resourceList li {
+        border-bottom: 1px solid #ccc;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        margin-left: 10px;
+    }
+    
+    .leftmenu .resourceList li:last-child {
+        border: none;
+    }
+    
+    .leftmenu .resourceList li:hover {
+        background: #f6f6f6;
+    }
+    
+    .leftmenu .resourceList li a {
+        text-decoration: none;
+        display: block;
+        width: 100%;
+    }
+    
+    .leftmenu .resourceList li a:hover {
+        text-decoration: underline;
+    }
+    
+    .terminated {
+        color: red;
+        font-style: italic !important;
+    }
+    
+    .lastTh {
+        min-width: 8px  !important;
+        width:8px !important;
+        border-left: 0px !important; 
+        border-bottom-width: 1px!important;
+    }
+    .image-padding {
+        padding-right: 24px!important; 
+    }
+    
+    .goalPlanHeader {
+/*      text-align: center; */
+        white-space: normal !important;
+        border-bottom-width: 1px!important;
+    }
+    
+    .headerTable {
+        width:100%; 
+        border-spacing:0; 
+        border-collapse:collapse;
+    }
+    
+    .activeTab {
+/*     	color: blue !important; */
+		font-weight: bold;
+    	font-weight: 15px !important;
+    	font-family: Arial, Helvetica, sans-serif !important;
+    	background: Red;
+    }
+    
+    .contentDiv {
+    	width: 100%;
+    	overflow-x: hidden;
+    	overflow-y: auto;
+    	max-height: 300px !important;
+    }
+</style>
+    <div id="theDiv">
+    <apex:messages styleClass="operationMessage"/>
+    <apex:form id="theForm">
+        <apex:inputHidden value="{!index}" id="clickTimes"/>
+        <apex:inputHidden value="{!selectedTab}" id="theHiddenSelectedTab"/>
+        <apex:pageBlock title="Branch Business Plan: Big 5" id="thePageBlock">
+            <apex:pageBlockButtons >
+                <!--         <apex:commandButton action="{!createQuadrantActionPlans}" value="Create Quadrant Action Plans for All FAs"/> -->
+                <apex:commandButton action="{!saveFAGoals}" value="Save"  onclick="changeIndexNum();"/>
+                <apex:commandButton action="{!cancel}" immediate="true" value="Go Back to Plan" />
+            </apex:pageBlockButtons>
+
+            <apex:pageBlockSection title="Branch Business Plan Information" columns="2">
+                <apex:repeat value="{!$ObjectType.BoM_Plan__c.FieldSets.BoM_Plan_Info}" var="f">
+                    <apex:outputField value="{!bomPlan[f]}"/>
+                </apex:repeat>
+            </apex:pageBlockSection>
+			
+			<apex:pageBlockSection title="Step 1: Input Retain and Attract Goals" columns="2">
+                <apex:repeat value="{!$ObjectType.BoM_Plan__c.FieldSets.FA_Goal_Header}" var="f">
+                    <apex:outputField value="{!bomPlan[f]}" Rendered="{!f.FieldPath != 'Plan_T12_Recruited__c' && f.FieldPath != 'Plan_T12_Attrited__c'}" />
+                    <apex:inputField id="PlanT12RecruitedId" required="true" styleClass="{!recruitedInputClass}" value="{!bomPlan[f]}" Rendered="{!f.FieldPath == 'Plan_T12_Recruited__c'}">
+                        <apex:outputText escape="false" value="<strong>Error: </strong>{!recruitedErrorMessage}" styleClass="errorMsg" rendered="{!f.FieldPath == 'Plan_T12_Recruited__c' && LEN(recruitedErrorMessage)>0}"/>
+                    </apex:inputField>
+                    <apex:inputField id="PlanT12AttritedId" required="true" styleClass="{!attritedInputClass}" value="{!bomPlan[f]}" Rendered="{!f.FieldPath == 'Plan_T12_Attrited__c'}">
+                        <apex:outputText escape="false" value="<strong>Error: </strong>{!attritedErrorMessage}" styleClass="errorMsg" rendered="{!f.FieldPath == 'Plan_T12_Attrited__c' && LEN(attritedErrorMessage)>0}"/>
+                    </apex:inputField>
+                </apex:repeat>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Step 2: Input Profit Margin Goal" columns="2" id="ProfitMarginSection">
+                <apex:repeat value="{!$ObjectType.BoM_Plan__c.FieldSets.Profit_Margin}" var="f">
+                    <apex:outputField value="{!bomPlan[f]}" Rendered="{!f.FieldPath != 'Plan_Profit_Margin__c'}" />
+                    <apex:inputField required="true" value="{!bomPlan[f]}" Rendered="{!f.FieldPath == 'Plan_Profit_Margin__c'}" id="Plan_Profit_Margin" onblur="calTotalProductionPlan();"/>
+                </apex:repeat>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Step 3: Input New Key HHs, Advisory, Lending and Net Income Goals" columns="1" id="thePageBlockSection">
+                <apex:tabPanel switchType="client" selectedTab="{!selectedTab}" value="{!selectedTab}" id="theTabPanel" activeTabClass="activeTab">
+                    <apex:tab label="New Key HHs" name="newKeyHHs" id="newKeyHHs" ontabenter="getSelectedTab('newKeyHHs', this);">
+                        <div class="colmask leftmenu">
+                            <div class="colleft">
+                                <div class="col1" id="tableDiv1">
+                                    <!-- Column 1 start -->
+                                    <table style="width: 100%;border-spacing:0;border-collapse:collapse;">
+                                        <tr>
+                                            <td>
+                                                <table class="list" style="width: 100%;border-spacing:0;border-collapse:collapse;" id="firstTabTable">
+                                                    <thead class="rich-table-thead">
+                                                        <tr class="headerRow ">
+                                                            <th class="headerRow  goalPlanHeader" scope="col" colspan="4"  width="75%" style="text-align: right;vertical-align:middle;font-size:15px;"><div>{!bomPlan.Year_Text__c} New Key HHs Goal:</div></th>
+                                                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1"  style="text-align: right;vertical-align:middle;font-size:15px;"><div id="NewKeyHHsFAGoal" class="image-padding">0</div></th>
+                                                            <th class="goalPlanHeader lastTh"></th>
+                                                        </tr>
+                                                        <tr class="headerRow ">
+                                                            <th class="headerRow  goalPlanHeader" scope="col" colspan="4" style="text-align: right;vertical-align:middle;font-size:15px;"><div>{!bomPlan.Year_Text__c} New Key HHs Plan:</div></th>
+                                                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" style="text-align: right;vertical-align:middle;font-size:15px;"><div id="Plan_New_Key_HHs_Rollup_Div"></div></th>
+                                                            <th class="goalPlanHeader lastTh"></th>
+                                                        </tr>
+                                                        <tr class="headerRow ">
+                                                            <!-- 
+                                                            <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8%"><div>Action</div></th>
+                                                            -->
+                                                            <th class="goalPlanHeader" scope="col" colspan="1" width="20%"><div>FA Name</div></th>
+                                                            <th class="goalPlanHeader" scope="col" colspan="1" width="20%"><div>Branch</div></th>
+                                                            <th class="colNumberStyle  goalPlanHeader" scope="col" colspan="1" width="15%"><div>{!year} New Key HHs</div></th>
+                                                            <th class="colNumberStyle  goalPlanHeader"  scope="col" colspan="1" width="20%"><div>{!bomPlan.Year_Text__c} New Key HHs FA Goal</div></th>
+                                                            <th class="colNumberStyle  goalPlanHeader" scope="col" colspan="1" width="25%"><div>This Year's Plan</div></th>
+                                                            <th class="goalPlanHeader lastTh"></th>
+                                                        </tr>
+                                                    </thead>
+                                                </table>
+                                            </td>
+                                        </tr>
+                            
+                                        <tr>
+                                            <td>
+                                                <div class="contentDiv" id="firstTabDiv">
+                                                    <apex:pageBlockTable value="{!wrapperList}" var="wrapper" id="theNewKeyHHsPageBlockTable">
+                                                        <apex:column headerValue="FA Name" width="20%">
+                                                            <apex:outputText value="Recruiting Impact" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" />
+                                                            <apex:outputLink value="/{!wrapper.ranking.Id}" rendered="{!wrapper.flag}" Target="_blank">
+                                                                <apex:outputText value="{!wrapper.ranking.Name}"/> 
+                                                            </apex:outputLink>
+                                                            <apex:outputLink value="/{!wrapper.faGoal.FA__r.Id}" rendered="{!!wrapper.flag}" Target="_blank">
+                                                                <apex:outputText value="{!wrapper.faGoal.FA__r.Name}"/>
+                                                            </apex:outputLink>
+                                                            <apex:outputText styleClass="terminated" value=" No Ranking" rendered="{!!wrapper.flag}"/>
+                                                            &nbsp;<apex:outputText styleClass="terminated" value="(Terminated)" rendered="{!wrapper.faGoal.FA__r.Terminated__c=='Yes'}"/>
+                                                        </apex:column>
+                                                        <apex:column colspan="3" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" >
+                                                            <apex:outputText value="Estimated based on Plan T12 Recruited" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="Branch" width="20%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputLink value="/{!wrapper.faGoal.FA__r.AccountId}">
+                                                                <apex:outputText value="{!wrapper.faGoal.FA__r.Account.Name}" />
+                                                            </apex:outputLink>
+                                                        </apex:column>
+                                                        <apex:column headerValue="{!year} New Key HHs" headerClass="colNumberStyle" styleClass="colNumberStyle" width="15%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputField value="{!wrapper.faGoal.Prior_New_Key_HHs__c}" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="{!bomPlan.Year_Text__c} New Key HHs FA Goal" headerClass="colNumberStyle" styleClass="colNumberStyle" width="20%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputField value="{!wrapper.faGoal.FA_Goal_New_Key_HHs__c}" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="This Year's Plan" width="25%" headerClass="colNumberStyle" styleClass="colInputNumberStyle">
+                                                            <apex:inputField styleClass="{!wrapper.newKeyHHsInputClass}" value="{!wrapper.faGoal.Plan_New_Key_HHs__c}" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}" onblur="calYearTotal(this, 1);" />
+                                                            <apex:inputField value="{!wrapper.faGoal.Plan_New_Key_HHs__c}" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" id="newKeyRecruiting" />
+                                                            <apex:outputText escape="false" value="<br/><strong>Error: </strong>{!wrapper.newKeyHHsErrorMessage}" styleClass="errorMsg" rendered="{!LEN(wrapper.newKeyHHsErrorMessage)>0}"/>
+                                                        </apex:column>
+                                                    </apex:pageBlockTable>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!-- Column 1 end -->
+                                </div>
+                                <div class="col2">
+                                    <!-- Column 2 start -->
+                                    <div id="ads" class="resourceList">
+                                        <h2>Help Links</h2>
+                                        <ul>
+                                            <apex:repeat value="{!newHeyHHsHelpList}" var="help">
+                                                <li>
+                                                <apex:outputLink value="{!help.Help_Link__c}" id="theHelpValue" target="_blank">
+                                                {!help.Name}
+                                                </apex:outputLink>
+                                                </li>
+                                            </apex:repeat>
+                                        </ul>
+                                    </div>
+                                    <!-- Column 2 end -->
+                                </div>
+                            </div>
+                        </div>
+                    </apex:tab>
+                    <apex:tab label="Advisory" name="advisory" id="advisory" ontabenter="getSelectedTab('advisory', this);">
+                        <div class="colmask leftmenu">
+                            <div class="colleft">
+                                <div class="col1">
+                                    <!-- Column 1 start -->
+                                    <table summary="" style="width: 100%;border-spacing:0;border-collapse:collapse;">
+                                        <tr>
+                                            <td>
+                                                <table summary="" class="list" cellpadding="0" cellspacing="0" width="100%" align="center" border="0" id="secondTabTable">
+                                                    <tr class="headerRow ">
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="5" style="text-align: right;vertical-align:middle;font-size:15px;"><div>{!bomPlan.Year_Text__c} Advisory Goal:</div></th>
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="25%" style="text-align: right;vertical-align:middle;font-size:15px;"><div id="FAGoalAdvisory" class="image-padding">0</div></th>
+                                                        <th class="lastTh"></th>
+                                                    </tr>
+                                                    <tr class="headerRow ">
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="5" style="text-align: right;vertical-align:middle;font-size:15px;"><div>{!bomPlan.Year_Text__c} Advisory Plan:</div></th>
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="25%" style="text-align: right;vertical-align:middle;font-size:15px;"><div id="Plan_Advisory_Net_Flows_Rollup_Div"></div></th>
+                                                        <th class="lastTh"></th>
+                                                    </tr>
+                                                    <tr class="headerRow ">
+<!--                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8%"><div>Action</div></th> -->
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="20%"><div>FA Name</div></th>
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="20%"><div>Branch</div></th>
+                                                        <th scope="col" colspan="1" width="14%" class="goalPlanHeader colNumberStyle"><div>{!year} Advisory Revenue %</div></th>
+                                                        <th scope="col" colspan="1" width="13%" class="goalPlanHeader colNumberStyle"><div>{!year} Net Advisory Flows</div></th>
+                                                        <th  scope="col" colspan="1" width="13%" class="goalPlanHeader colNumberStyle"><div>{!bomPlan.Year_Text__c} Net Advisory Flows FA Goal</div></th>
+                                                        <th scope="col" colspan="1" class="goalPlanHeader colNumberStyle"><div>This Year's Plan</div></th>
+                                                        <th class="goalPlanHeader lastTh"></th>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                            
+                                        <tr>
+                                            <td>
+                                                <div class="contentDiv" id="secondTabDiv">
+                                                    <apex:pageBlockTable value="{!wrapperList}" var="wrapper" id="theAdvisoryPageBlockTable">
+                                                        <!-- 
+                                                        <apex:column headerValue="Action" width="8%">
+                                                            <apex:outputLink value="/{!wrapper.ranking.Id}" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}" target="_blank">
+                                                                <font>FA Details</font>
+                                                            </apex:outputLink>
+                                                            <apex:outputText rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}">
+                                                                <font></font>
+                                                            </apex:outputText>
+                                                        </apex:column>
+                                                        <apex:column headerValue="FA Name" width="30%">
+                                                            <apex:outputText value="Recruiting Impact" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" />
+                                                            <apex:outputLink value="/{!wrapper.faGoal.FA__c}" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}" >
+                                                                <apex:outputText value="{!wrapper.faGoal.FA__r.Name}"/>
+                                                            </apex:outputLink>
+                                                            &nbsp;<apex:outputText styleClass="terminated" value="(Terminated)" rendered="{!wrapper.faGoal.FA__r.Terminated__c=='Yes'}"/>
+                                                        </apex:column>
+                                                        -->
+                                                        <apex:column headerValue="FA Name" width="20%">
+                                                            <apex:outputText value="Recruiting Impact" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" />
+                                                            <apex:outputLink value="/{!wrapper.ranking.Id}" rendered="{!wrapper.flag}"  Target="_blank">
+                                                                <apex:outputText value="{!wrapper.ranking.Name}"/> 
+                                                            </apex:outputLink>
+                                                            <apex:outputLink value="/{!wrapper.faGoal.FA__r.Id}" rendered="{!!wrapper.flag}" Target="_blank">
+                                                                <apex:outputText value="{!wrapper.faGoal.FA__r.Name}"/>
+                                                            </apex:outputLink>
+                                                            <apex:outputText styleClass="terminated" value=" No Ranking" rendered="{!!wrapper.flag}"/>
+                                                            &nbsp;<apex:outputText styleClass="terminated" value="(Terminated)" rendered="{!wrapper.faGoal.FA__r.Terminated__c=='Yes'}"/>
+                                                        </apex:column>
+                                                        
+                                                        <apex:column colspan="4" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" >
+                                                            <apex:outputText value="Estimated based on Plan T12 Recruited" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="Branch" width="20%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputLink value="/{!wrapper.faGoal.FA__r.AccountId}">
+                                                                <apex:outputText value="{!wrapper.faGoal.FA__r.Account.Name}" />
+                                                            </apex:outputLink>
+                                                        </apex:column>
+                                                        <apex:column headerValue="{!year} Advisory Revenue %" headerClass="colNumberStyle" styleClass="colNumberStyle" width="14%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputField value="{!wrapper.faGoal.Prior_Year_Advisory_Revenue__c}" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="{!year} Net Advisory Flows" headerClass="colNumberStyle" styleClass="colNumberStyle" width="13%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputField value="{!wrapper.faGoal.Prior_Advisory_Net_Flows__c}" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="{!bomPlan.Year_Text__c} Net Advisory Flows FA Goal" headerClass="colNumberStyle" styleClass="colNumberStyle" width="13%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputField value="{!wrapper.faGoal.FA_Goal_Advisory_Net_Flows__c}" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="This Year's Plan" headerClass="colNumberStyle" styleClass="colInputNumberStyle">
+                                                            <apex:inputField style="text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;" styleClass="{!wrapper.advisoryInputClass}" value="{!wrapper.faGoal.Plan_Advisory_Net_Flows__c}" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}" onblur="calYearTotal(this, 2);" />
+                                                            <apex:inputField style="text-align: right; width: 100px; font-family: Arial, Helvetica, sans-serif;" value="{!wrapper.faGoal.Plan_Advisory_Net_Flows__c}" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" id="advisoryRecruiting" />
+                                                            <apex:outputText escape="false" value="<br/><strong>Error: </strong>{!wrapper.advisoryErrorMessage}" styleClass="errorMsg" rendered="{!LEN(wrapper.advisoryErrorMessage)>0}"/>
+                                                        </apex:column>
+                
+                                                    </apex:pageBlockTable>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!-- Column 1 end -->
+                                </div>
+                                <div class="col2">
+                                    <!-- Column 2 start -->
+                                    <div id="ads" class="resourceList">
+                                        <h2>Help Links</h2>
+                                        <ul>
+                                            <apex:repeat value="{!advisoryHelpList}" var="help">
+                                                <li>
+                                                <apex:outputLink value="{!help.Help_Link__c}" target="_blank">
+                                                    {!help.Name}
+                                                </apex:outputLink>
+                                                </li>
+                                            </apex:repeat>
+                                        </ul>
+                                    </div>
+                                    <!-- Column 2 end -->
+                                </div>
+                            </div>
+                        </div>
+                    </apex:tab>
+                    <apex:tab label="Lending" name="lending" id="lending" ontabenter="getSelectedTab('lending', this);">
+                        <div class="colmask leftmenu">
+                            <div class="colleft">
+                                <div class="col1">
+                                    <!-- Column 1 start -->
+                                    <table summary="" cellpadding="0" cellspacing="1" align="center" title="" style="width: 100%;" border="0">
+                                        <tr>
+                                            <td>
+                                                <table summary="" class="list" cellpadding="0" cellspacing="0" width="100%" align="center" border="0" id="thirdTabTable">
+                                                    <tr class="headerRow ">
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="4" width="75%" style="text-align: right;vertical-align:middle;font-size:15px;"><div>{!bomPlan.Year_Text__c} Lending Credits Goal:</div></th>
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="1" style="text-align: right;vertical-align:middle;font-size:15px;"><div id="FAGoalLending" class="image-padding">0</div></th>
+                                                        <th class="lastTh"></th>
+                                                    </tr>
+                                                    <tr class="headerRow ">
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="4" width="75%" style="text-align: right;vertical-align:middle;font-size:15px;"><div>{!bomPlan.Year_Text__c} Lending Credits Plan:</div></th>
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="1" style="text-align: right;vertical-align:middle;font-size:15px;"><div id="Plan_Lending_Rollup_Div"></div></th>
+                                                        <th class="lastTh"></th>
+                                                    </tr>
+                                                    <tr class="headerRow ">
+<!--                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="8%"><div>Action</div></th> -->
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="20%"><div>FA Name</div></th>
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="20%"><div>Branch</div></th>
+                                                        <th scope="col" colspan="1" width="15%" class="goalPlanHeader colNumberStyle"><div>{!year} Lending Credits</div></th>
+                                                        <th scope="col" colspan="1" width="20%" class="goalPlanHeader colNumberStyle"><div>{!bomPlan.Year_Text__c} Lending $ FA Goal</div></th>
+                                                        <th scope="col" colspan="1"  width="25%" class="goalPlanHeader colNumberStyle"><div>This Year's Lending Credit Plan</div></th>
+                                                        <th class="goalPlanHeader lastTh"></th>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                            
+                                        <tr>
+                                            <td>
+                                                <div class="contentDiv" id="thirdTabDiv">
+                                                    <apex:pageBlockTable value="{!wrapperList}" var="wrapper" id="theLendingPageBlockTable">
+                                                        <!-- 
+                                                        <apex:column headerValue="Action" width="8%">
+                                                            <apex:outputLink value="/{!wrapper.ranking.Id}" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}" target="_blank">
+                                                                <font>FA Details</font>
+                                                            </apex:outputLink>
+                                                            <apex:outputText rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}">
+                                                                <font>FA Details</font>
+                                                            </apex:outputText>
+                                                        </apex:column>
+                                                        <apex:column headerValue="FA Name" width="30%">
+                                                            <apex:outputText value="Recruiting Impact" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" />
+                                                            <apex:outputLink value="/{!wrapper.faGoal.FA__c}" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}" >
+                                                                <apex:outputText value="{!wrapper.faGoal.FA__r.Name}"/>
+                                                            </apex:outputLink>
+                                                            &nbsp;<apex:outputText styleClass="terminated" value="(Terminated)" rendered="{!wrapper.faGoal.FA__r.Terminated__c=='Yes'}"/>
+                                                        </apex:column>
+                                                         -->
+                                                         <apex:column headerValue="FA Name" width="20%">
+                                                            <apex:outputText value="Recruiting Impact" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" />
+                                                            <apex:outputLink value="/{!wrapper.ranking.Id}" rendered="{!wrapper.flag}"  Target="_blank">
+                                                                <apex:outputText value="{!wrapper.ranking.Name}"/> 
+                                                            </apex:outputLink>
+                                                            <apex:outputLink value="/{!wrapper.faGoal.FA__r.Id}" rendered="{!!wrapper.flag}" Target="_blank">
+                                                                <apex:outputText value="{!wrapper.faGoal.FA__r.Name}"/>
+                                                            </apex:outputLink>
+                                                            <apex:outputText styleClass="terminated" value=" No Ranking" rendered="{!!wrapper.flag}"/>
+                                                            &nbsp;<apex:outputText styleClass="terminated" value="(Terminated)" rendered="{!wrapper.faGoal.FA__r.Terminated__c=='Yes'}"/>
+                                                        </apex:column>
+                                                        <apex:column colspan="3" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" >
+                                                            <apex:outputText value="Estimated based on Plan T12 Recruited" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="Branch"  width="20%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputLink value="/{!wrapper.faGoal.FA__r.AccountId}">
+                                                                <apex:outputText value="{!wrapper.faGoal.FA__r.Account.Name}" />
+                                                            </apex:outputLink>
+                                                        </apex:column>
+                                                        <apex:column headerValue="{!year} Lending $ Credits" headerClass="colNumberStyle" styleClass="colNumberStyle"  width="15%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputField value="{!wrapper.faGoal.Prior_Lending__c}" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="{!bomPlan.Year_Text__c} Lending $ FA Goal" headerClass="colNumberStyle" styleClass="colNumberStyle"  width="20%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputField value="{!wrapper.faGoal.FA_Goal_Lending__c}" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="This Year's Lending Credit Plan" headerClass="colNumberStyle" styleClass="colInputNumberStyle" width="25%">
+                                                            <apex:inputField styleClass="{!wrapper.lendingInputClass}" value="{!wrapper.faGoal.Plan_Lending__c}" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}" onblur="calYearTotal(this, 3);" />
+                                                            <apex:inputField value="{!wrapper.faGoal.Plan_Lending__c}" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" id="lendingRecruiting" />
+                                                            <apex:outputText escape="false" value="<br/><strong>Error: </strong>{!wrapper.lendingErrorMessage}" styleClass="errorMsg" rendered="{!LEN(wrapper.lendingErrorMessage)>0}"/>
+                                                        </apex:column>
+                
+                                                    </apex:pageBlockTable>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!-- Column 1 end -->
+                                </div>
+                                <div class="col2">
+                                    <!-- Column 2 start -->
+                                    <div id="ads" class="resourceList">
+                                        <h2>Help Links</h2>
+                                        <ul>
+                                            <apex:repeat value="{!lendingHelpList}" var="help">
+                                                <li>
+                                                <apex:outputLink value="{!help.Help_Link__c}" target="_blank">
+                                                {!help.Name}
+                                                </apex:outputLink>
+                                                </li>
+                                            </apex:repeat>
+                                        </ul>
+                                    </div>
+                                    <!-- Column 2 end -->
+                                </div>
+                            </div>
+                        </div>
+                    </apex:tab>
+                    <apex:tab label="Net Income" name="netIncome" id="netIncome" ontabenter="getSelectedTab('netIncome', this);">
+                        <div class="colmask leftmenu">
+                            <div class="colleft">
+                                <div class="col1">
+                                    <!-- Column 1 start -->
+                                    <table summary="" cellpadding="0" cellspacing="1" align="center" title="" style="width: 100%;" border="0">
+                                        <tr>
+                                            <td>
+                                                <table summary="" class="list" cellpadding="0" cellspacing="0" width="100%" align="center" border="0" id="fourthTabTable">
+                                                    <tr class="headerRow ">
+                                                    	<th class="goalPlanHeader" scope="col" colspan="2" width="40%" style="text-align: right;vertical-align:middle;font-size:15px;"><div>{!bomPlan.Year_Text__c} Total Sales Revenue Plan:</div></th>
+                                                        <th class="goalPlanHeader" scope="col" colspan="1" width="15%" style="text-align: right;vertical-align:middle;font-size:15px;"><div id="Total_Production_Plan_Div"></div></th>
+                                                        
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="25%" style="text-align: right;vertical-align:middle;font-size:15px;"><div>{!bomPlan.Year_Text__c} Net Income Goal:</div></th>
+                                                        <th class="headerRow  goalPlanHeader" scope="col" colspan="1" width="20%" style="text-align: right;vertical-align:middle;font-size:15px;"><div id="FAGoalNetIncome">0</div></th>
+                                                        <th class="goalPlanHeader lastTh"></th>
+                                                    </tr>
+                                                    <tr class="headerRow ">
+                                                    	<th class="goalPlanHeader" scope="col" colspan="2" width="40%" style="text-align: right;vertical-align:middle;font-size:15px;"><div>{!bomPlan.Year_Text__c} Total Revenue Plan:</div></th>
+                                                        <th class="goalPlanHeader" scope="col" colspan="1" width="15%" style="text-align: right;vertical-align:middle;font-size:15px;"><div id="Total_Revenue_Plan_Div"></div></th>
+                                                        
+                                                        <th class="goalPlanHeader" scope="col" width="25%" colspan="1" style="text-align: right;vertical-align:middle;font-size:15px;"><div>{!bomPlan.Year_Text__c} Net Income Plan:</div></th>
+                                                        <th class="goalPlanHeader" scope="col" width="20%" colspan="1" style="text-align: right;vertical-align:middle;font-size:15px;"><div id="Net_Income_Rollup_Div"></div></th>
+                                                        <th class="goalPlanHeader lastTh"></th>
+                                                    </tr>
+                                                    <tr class="headerRow ">
+                                                        <th class="goalPlanHeader" scope="col" colspan="1" width="20%"><div>FA Name</div></th>
+                                                        <th class="goalPlanHeader" scope="col" colspan="1" width="20%"><div>Branch</div></th>
+                                                        <th scope="col" colspan="1" width="15%" class="goalPlanHeader colNumberStyle"><div>{!year} Revenue</div></th>
+                                                        <th scope="col" colspan="1" width="25%" class="goalPlanHeader colNumberStyle"><div>{!bomPlan.Year_Text__c} Revenue FA Goal</div></th>
+                                                        <th scope="col" colspan="1" class="goalPlanHeader colNumberStyle"><div>This Year's Revenue Plan</div></th>
+                                                        <th class="goalPlanHeader lastTh"></th>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                            
+                                        <tr>
+                                            <td>
+                                                <div class="contentDiv" id="fourthTabDiv">
+                                                    <apex:pageBlockTable value="{!wrapperList}" var="wrapper" id="theNetIncomePageBlockTable">
+                                                         <apex:column headerValue="FA Name" width="20%">
+                                                            <apex:outputText value="Recruiting Impact" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" />
+                                                            <apex:outputLink value="/{!wrapper.ranking.Id}" rendered="{!wrapper.flag}" >
+                                                                <apex:outputText value="{!wrapper.ranking.Name}"/> 
+                                                            </apex:outputLink>
+                                                            <apex:outputLink value="/{!wrapper.faGoal.FA__r.Id}" rendered="{!!wrapper.flag}" Target="_blank">
+                                                                <apex:outputText value="{!wrapper.faGoal.FA__r.Name}"/>
+                                                            </apex:outputLink>
+                                                            <apex:outputText styleClass="terminated" value=" No Ranking" rendered="{!!wrapper.flag}"/>
+                                                            &nbsp;<apex:outputText styleClass="terminated" value="(Terminated)" rendered="{!wrapper.faGoal.FA__r.Terminated__c=='Yes'}"/>
+                                                        </apex:column>
+                                                        <apex:column colspan="3" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" >
+                                                            <apex:outputText value="Estimated based on Plan T12 Recruited" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="Branch" width="20%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputLink value="/{!wrapper.faGoal.FA__r.AccountId}" Target="_blank">
+                                                                <apex:outputText value="{!wrapper.faGoal.FA__r.Account.Name}" />
+                                                            </apex:outputLink>
+                                                        </apex:column>
+                                                        <apex:column headerValue="{!year} Revenue" headerClass="colNumberStyle" styleClass="colNumberStyle" width="15%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputField value="{!wrapper.faGoal.Prior_Net_Income__c}" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="{!bomPlan.Year_Text__c} Revenue FA Goal" headerClass="colNumberStyle" styleClass="colNumberStyle" width="25%" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}">
+                                                            <apex:outputField value="{!wrapper.faGoal.FA_Goal_Net_Income__c}" />
+                                                        </apex:column>
+                                                        <apex:column headerValue="This Year's Plan ($)" headerClass="colNumberStyle" styleClass="colInputNumberStyle">
+                                                            <apex:inputField styleClass="{!wrapper.netIncomeInputClass}" value="{!wrapper.faGoal.Plan_Net_Income__c}" rendered="{!wrapper.faGoal.RecordType.Name != 'Recruiting'}" onblur="calYearTotal(this, 4);" />
+                                                            <apex:inputField value="{!wrapper.faGoal.Plan_Net_Income__c}" rendered="{!wrapper.faGoal.RecordType.Name == 'Recruiting'}" id="netIncomeRecruiting" />
+                                                            <apex:outputText escape="false" value="<br/><strong>Error: </strong>{!wrapper.netIncomeErrorMessage}" styleClass="errorMsg" rendered="{!LEN(wrapper.netIncomeErrorMessage)>0}"/>
+                                                        </apex:column>
+                                                        <!-- 
+                                                        <apex:column headerValue="Projected Growth" headerClass="colNumberStyle" styleClass="colNumberStyle" width="15%">
+                                                            <apex:outputField value="{!wrapper.faGoal.Projected_Growth__c}" />
+                                                        </apex:column>
+                                                         -->
+                                                    </apex:pageBlockTable>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!-- Column 1 end -->
+                                </div>
+                                <div class="col2">
+                                    <!-- Column 2 start -->
+                                    <div id="ads" class="resourceList">
+                                        <h2>Help Links</h2>
+                                        <ul>
+                                            <apex:repeat value="{!netIncomeHelpList}" var="help">
+                                                <li>
+                                                <apex:outputLink value="{!help.Help_Link__c}" target="_blank"> 
+                                                {!help.Name}
+                                                </apex:outputLink>
+                                                </li>
+                                            </apex:repeat>
+                                        </ul>
+                                    </div>
+                                    <!-- Column 2 end -->
+                                </div>
+                            </div>
+                        </div>
+                    </apex:tab>
+                </apex:tabPanel>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        <!-- below filed need to transfer to server to compare when bom status is "In Action", "In Progress" start -->
+        <apex:inputHidden value="{!PlanNewKeyHHsRollupCompare}" id="Plan_New_Key_HHs_Rollup_Compare"/>
+        <apex:inputHidden value="{!PlanAdvisoryNetFlowsRollupCompare}" id="Plan_Advisory_Net_Flows_Rollup_Compare"/>
+        <apex:inputHidden value="{!PlanLendingRollupCompare}" id="Plan_Lending_Rollup_Compare"/>
+        <apex:inputHidden value="{!PlanNetIncomeCompare}" id="Plan_Net_Income_Compare"/>
+        <!-- below filed need to transfer to server to compare when bom status is "In Action", "In Progress" end   -->
+    </apex:form>
+    <input type="hidden" value="{!bomPlan.Prior_New_Key_HHs__c}" id="Prior_New_Key_HHs"></input>
+    <input type="hidden" value="{!bomPlan.Plan_New_Key_HHs_Rollup__c}" id="Plan_New_Key_HHs_Rollup"></input>
+
+    <input type="hidden" value="{!bomPlan.Prior_Advisory_Net_Flows__c}" id="Prior_Advisory_Net_Flows"></input>
+    <input type="hidden" value="{!bomPlan.Plan_Advisory_Net_Flows_Rollup__c}" id="Plan_Advisory_Net_Flows_Rollup"></input>
+<!--    <input type="hidden" value="{!bomPlan.YTD_Advisory_Net_Flows__c}" id="YTD_Advisory_Net_Flows"></input> -->
+
+    <input type="hidden" value="{!bomPlan.Prior_Lending__c}" id="Prior_Lending"></input>
+    <input type="hidden" value="{!bomPlan.Plan_Lending_Rollup__c}" id="Plan_Lending_Rollup"></input>
+
+    <!-- set approved result -->
+<!--     <input type="hidden" value="{!bomPlan.Projected_Growth_Rollup__c}" id="Projected_Growth_Rollup"></input> -->
+
+    <!-- bomPlan.YTD_Profit_Margin__c -->
+    <input type="hidden" value="{!bomPlan.YTD_Profit_Margin__c}" id="YTD_Profit_Margin"></input>
+    <!-- bomPlan.Status__c -->
+    <input type="hidden" value="{!bomPlan.Status__c}" id="Status__c"></input>
+    </div>
+    
+    
+<!--     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> -->
+	<apex:includeScript value="{!$Resource.jQuery10}"/>
+    <script type="text/javascript">
+        $.noConflict();
+        var calYearTotal;
+        var rollup;
+        var valueFormat;
+        var simulativeClick;
+        var removeColumnFromTable;
+        var setupData;
+        var calTotalProductionPlan;
+        var style = "style='text-align: right;vertical-align:middle;font-size:15px;'";
+        var confirm = "&nbsp;&nbsp;<img src='/img/msg_icons/confirm16.png'/>";
+        var error = "&nbsp;&nbsp;<img src='/img/msg_icons/error16.png'/>";
+        var FAGoalNewKeyHHs = {!FAGoalNewKeyHHs} + '';
+        var FAGoalAdvisory = {!FAGoalAdvisory} + '';
+        var FAGoalLending = {!FAGoalLending} + '';
+        var FAGoalNetIncome = {!FAGoalNetIncome} + '';
+        var PriorNetIncome = {!PriorNetIncome} + '';
+        var PlanNetIncome = {!PlanNetIncome} + '';
+        jQuery(document).ready(function($) {
+            // Extend the default Number object with a formatMoney() method:
+            // usage: someVar.formatMoney(decimalPlaces, symbol, thousandsSeparator, decimalSeparator)
+            // defaults: (2, "$", ",", ".")
+            Number.prototype.formatMoney = function (places, symbol, thousand, decimal) {
+                places = !isNaN(places = Math.abs(places)) ? places : 2;
+                symbol = symbol !== undefined ? symbol : "$";
+                thousand = thousand || ",";
+                decimal = decimal || ".";
+                var number = this,
+                negative = number < 0 ? "-" : "",
+                i = parseInt(number = Math.abs(+number || 0).toFixed(places), 10) + "",
+                j = (j = i.length) > 3 ? j % 3 : 0;
+                return symbol + negative + (j ? i.substr(0, j) + thousand : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousand) + (places ? decimal + Math.abs(number - i).toFixed(places).slice(2) : "");
+            };
+            
+            simulativeClick();
+            //set all input field was disable and hide save button
+            if($("#Status__c").val() == "Closed" || $("#Status__c").val() == "Submitted") {
+                $("input[type=text]").each(function(){
+                    $(this).attr("disabled",true);
+                    //alert(this.name);
+                });
+                $("input[type=submit][value='Save FA Goals']").css("display", "none"); 
+            }
+            
+            //new key HH
+            var newKeyTable = $("*[id*=theNewKeyHHsPageBlockTable]")[0];
+            $(newKeyTable).children('thead').remove();
+            var Tonnage_Goal_New_Key_HHs = {!tonnageGoalNewKeyHHs} + '';
+            var Plan_New_Key_HHs_Rollup = 0;
+            if($("#Plan_New_Key_HHs_Rollup").val() != null && $("#Plan_New_Key_HHs_Rollup").val() != "") {
+                Plan_New_Key_HHs_Rollup = $("#Plan_New_Key_HHs_Rollup").val();
+            }
+            var Plan_New_Key_HHs_Rollup_Compare = document.getElementById("{!$Component.theForm.Plan_New_Key_HHs_Rollup_Compare}");
+            $(Plan_New_Key_HHs_Rollup_Compare).val(Plan_New_Key_HHs_Rollup);
+            
+            $("#NewKeyHHsFAGoal").text((Number(Tonnage_Goal_New_Key_HHs)).formatMoney(0, ""));
+            
+            if(Number(Plan_New_Key_HHs_Rollup) >= Number(Tonnage_Goal_New_Key_HHs)) {
+                 $("#Plan_New_Key_HHs_Rollup_Div").append((Number(Plan_New_Key_HHs_Rollup)).formatMoney(0, "")+confirm);
+            }else {
+                 $("#Plan_New_Key_HHs_Rollup_Div").append((Number(Plan_New_Key_HHs_Rollup)).formatMoney(0, "")+error);
+            }
+            
+            
+            
+            //advisory
+            var advisoryTable = $("*[id*=theAdvisoryPageBlockTable]")[0];
+            $(advisoryTable).children('thead').remove();
+            var Plan_Advisory_Net_Flows_Rollup = 0;
+            var Tonnage_Goal_Advisory_Net_Flows = {!tonnageGoalAdvisoryNetFlows} + '';
+            if($("#Plan_Advisory_Net_Flows_Rollup").val() != null && $("#Plan_Advisory_Net_Flows_Rollup").val() != "") {
+                Plan_Advisory_Net_Flows_Rollup = $("#Plan_Advisory_Net_Flows_Rollup").val();
+            }
+            var Plan_Advisory_Net_Flows_Rollup_Compare = document.getElementById("{!$Component.theForm.Plan_Advisory_Net_Flows_Rollup_Compare}");
+            $(Plan_Advisory_Net_Flows_Rollup_Compare).val(Plan_Advisory_Net_Flows_Rollup);
+            $("#FAGoalAdvisory").text(formatString(Tonnage_Goal_Advisory_Net_Flows, 0, 0));
+            if(Number(Plan_Advisory_Net_Flows_Rollup) >= Number(Tonnage_Goal_Advisory_Net_Flows)) {
+                $("#Plan_Advisory_Net_Flows_Rollup_Div").append(formatString(Plan_Advisory_Net_Flows_Rollup, 0, 0)+confirm);
+            }else {
+                $("#Plan_Advisory_Net_Flows_Rollup_Div").append(formatString(Plan_Advisory_Net_Flows_Rollup, 0, 0)+error);
+            }
+            
+            
+            //Lending
+            var lendingTable = $("*[id*=theLendingPageBlockTable]")[0];
+            $(lendingTable).children('thead').remove();
+            var Plan_Lending_Rollup = 0;
+            var Tonnage_Goal_Lending = {!tonnageGoalLending} + '';
+            if(jQuery("#Plan_Lending_Rollup").val() != null && jQuery("#Plan_Lending_Rollup").val() != "") {
+                Plan_Lending_Rollup = jQuery("#Plan_Lending_Rollup").val();
+            }
+            $("#FAGoalLending").text(formatString(Tonnage_Goal_Lending, 0, 0));
+            var Plan_Lending_Rollup_Compare = document.getElementById("{!$Component.theForm.Plan_Lending_Rollup_Compare}");
+            $(Plan_Lending_Rollup_Compare).val(Plan_Lending_Rollup);
+            if(Number(Plan_Lending_Rollup) >= Number(valueFormat(Tonnage_Goal_Lending))) {
+                $("#Plan_Lending_Rollup_Div").append(formatString(Plan_Lending_Rollup, 0, 0)+confirm);
+            }else {
+                $("#Plan_Lending_Rollup_Div").append(formatString(Plan_Lending_Rollup, 0, 0)+error);
+            }
+            
+            
+            //Net Income
+            var theNetIncomePageBlockTable = $("*[id*=theNetIncomePageBlockTable]")[0];
+            $(theNetIncomePageBlockTable).children('thead').remove();
+            var Tonnage_Goal_Net_Income = {!tonnageGoalNetIncome} + '';
+            PlanNetIncome = Number({!bomPlan.Plan_Net_Income_Rollup_By_Revenue__c} + '');
+            var Plan_Net_Income_Compare = document.getElementById("{!$Component.theForm.Plan_Net_Income_Compare}");
+            $(Plan_Net_Income_Compare).val(valueFormat(PlanNetIncome.formatMoney(0, "")));
+            $("#Net_Income_Rollup_Div").append(formatString(PlanNetIncome, 0, 0));
+            /**
+            if(Number(PlanNetIncome) >= Number(valueFormat(Tonnage_Goal_Net_Income))) {
+                $("#Net_Income_Rollup_Div").append(formatString(PlanNetIncome, 0, 0)+confirm);
+            }else {
+                $("#Net_Income_Rollup_Div").append(formatString(PlanNetIncome, 0, 0)+error);
+            }
+            **/
+            $("#FAGoalNetIncome").text(formatString(Tonnage_Goal_Net_Income, 0, 0));
+            var totalProductionPlan = Number({!bomPlan.Plan_Revenue__c} + '');
+            var totalSalesPlan = totalProductionPlan + Number({!bomPlan.Allocated_Revenue__c} + '') + Number({!bomPlan.Other_Revenue__c} + '');
+            $("#Total_Production_Plan_Div").append(formatString(totalProductionPlan, 0, 0));
+            $("#Total_Revenue_Plan_Div").append(formatString(totalSalesPlan, 0, 0));
+            /**
+            var Projected_Growth_Rollup = 0;
+            if(jQuery("#Projected_Growth_Rollup").val() != null && jQuery("#Projected_Growth_Rollup").val() != "") {
+                Projected_Growth_Rollup = jQuery("#Projected_Growth_Rollup").val();
+            }
+            $("#project_growth").html(formatString(Number(Projected_Growth_Rollup), 0, 2));
+            **/
+            calYearTotal = function(tInput, tab) {
+                var inputValue = valueFormat(jQuery(tInput).val());
+                
+                var total = 0;
+                if(tab == 1) {
+                    total = rollup(newKeyTable, 1);
+                    $(Plan_New_Key_HHs_Rollup_Compare).val(total);
+                    var NewKeyHHsFAGoal = valueFormat($("#NewKeyHHsFAGoal").text());
+                    if(Number(total >= Number(NewKeyHHsFAGoal))) {
+                        $("#Plan_New_Key_HHs_Rollup_Div").text((Number(total)).formatMoney(0, "")).append(confirm);
+                    }else {
+                        $("#Plan_New_Key_HHs_Rollup_Div").text((Number(total)).formatMoney(0, "")).append(error);
+                    }
+                }else if(tab == 2) {
+                    total = rollup(advisoryTable, 2);
+                    $(Plan_Advisory_Net_Flows_Rollup_Compare).val(total);
+                    var tmp = total;
+                    total = formatString(total, 0, 0);
+                    var advisoryFAGoal = valueFormat($("#FAGoalAdvisory").text());
+                    if(Number(tmp) >= Number(advisoryFAGoal)) {
+                        $("#Plan_Advisory_Net_Flows_Rollup_Div").text(total).append(confirm);
+                    }else {
+                        $("#Plan_Advisory_Net_Flows_Rollup_Div").text(total).append(error);
+                    }
+                }else if(tab == 3) {
+                    total = rollup(lendingTable, 3);
+                    $(Plan_Lending_Rollup_Compare).val(total);
+                    var tmp = total;
+                    total = formatString(total, 0, 0);
+                    var lendingFAGoal = valueFormat($("#FAGoalLending").text());
+                    if(Number(tmp) >= Number(lendingFAGoal)) {
+                        $("#Plan_Lending_Rollup_Div").text(total).append(confirm);
+                    }else {
+                        $("#Plan_Lending_Rollup_Div").text(total).append(error);
+                    }
+                }else if(tab == 4) {
+                    total = rollup(theNetIncomePageBlockTable, 4);
+                    setupData(total);
+                    /**
+                    $("#Total_Production_Plan_Div").text(formatString(total, 0, 0));
+                    var profitMargin = $($("*[id*=Plan_Profit_Margin]")[0]).val();
+                    total = total * Number(profitMargin) / 100 ;
+                    var compareNumber = total;
+                    $(Plan_Net_Income_Compare).val(valueFormat(compareNumber.formatMoney(0, "")));
+                    var tmp = total;
+                    total = formatString(total, 0, 0);
+                    var netIncomeFAGoal = valueFormat($("#FAGoalNetIncome").text());
+                    if(Number(tmp) >= Number(netIncomeFAGoal)) {
+                        jQuery("#Net_Income_Rollup_Div").text(total).append(confirm);
+                    }else {
+                        jQuery("#Net_Income_Rollup_Div").text(total).append(error);
+                    }
+                    **/
+                }
+            };
+            
+            calTotalProductionPlan = function() {
+            	var total = rollup(theNetIncomePageBlockTable, 4);
+                setupData(total);
+            };
+            
+            rollup = function(theTable, tab) {
+                var total = 0;
+                jQuery.each($(theTable).children('tbody').find("tr"), function(key, value) {
+                    var inputValue = jQuery(jQuery(value).find("td").last()).find("input").val();
+                    inputValue = valueFormat(inputValue);
+                    /**
+                    if(tab == 4) {
+                    	var profitMargin = $($("*[id*=Plan_Profit_Margin]")[0]).val();
+                    	//var profitMargin = Number(valueFormat($("#YTD_Profit_Margin").val())) >= 25?valueFormat($("#YTD_Profit_Margin").val()):25;
+                        total += Number(inputValue) * Number(profitMargin) / 100 ;
+                    }else {
+                        total += Number(inputValue);
+                    }
+                    **/
+                    total += Number(inputValue);
+                });
+                return total;
+                
+            };
+            
+            setupData = function(total) {
+            	$("#Total_Production_Plan_Div").text(formatString(total, 0, 0));
+            	var totalRevenue = total + Number({!bomPlan.Allocated_Revenue__c} + '') + Number({!bomPlan.Other_Revenue__c} + '');
+            	$("#Total_Revenue_Plan_Div").text(formatString(totalRevenue, 0, 0));
+                var profitMargin = $($("*[id*=Plan_Profit_Margin]")[0]).val().replace("%", "");
+                if(profitMargin == null || profitMargin == '') {
+                	profitMargin = 0;
+                }
+                total = totalRevenue * Number(profitMargin) / 100 ;
+                var compareNumber = total;
+                $(Plan_Net_Income_Compare).val(valueFormat(compareNumber.formatMoney(0, "")));
+                var tmp = total;
+                total = formatString(total, 0, 0);
+                var netIncomeFAGoal = valueFormat($("#FAGoalNetIncome").text());
+                jQuery("#Net_Income_Rollup_Div").text(total);
+                /**
+                if(Number(tmp) >= Number(netIncomeFAGoal)) {
+                    jQuery("#Net_Income_Rollup_Div").text(total).append(confirm);
+                }else {
+                    jQuery("#Net_Income_Rollup_Div").text(total).append(error);
+                }
+                **/
+            };  
+                
+            $($("*[id*=newKeyRecruiting]")[0]).attr("disabled",true);
+            $($("*[id*=advisoryRecruiting]")[0]).attr("disabled",true);
+            $($("*[id*=lendingRecruiting]")[0]).attr("disabled",true);
+            $($("*[id*=netIncomeRecruiting]")[0]).attr("disabled",true);
+            removeColumnFromTable();
+        });
+        
+        removeColumnFromTable = function() {
+        	var theHiddenSelectedTab = jQuery("*[id*=theHiddenSelectedTab]")[0];
+        	var selectedTab = jQuery(theHiddenSelectedTab).val();
+        	var scrollHeight = 0;
+        	var divHeight = 0;
+            if(selectedTab == 'newKeyHHs') {
+                scrollHeight = jQuery("#firstTabDiv")[0].scrollHeight;
+                divHeight = jQuery("#firstTabDiv").height();
+            }else if(selectedTab == 'advisory') {
+                scrollHeight = jQuery("#secondTabDiv")[0].scrollHeight;
+                divHeight = jQuery("#secondTabDiv").height();
+            }else if(selectedTab == 'lending') {
+                scrollHeight = jQuery("#thirdTabDiv")[0].scrollHeight;
+                divHeight = jQuery("#thirdTabDiv").height();
+            }else if(selectedTab == 'netIncome') {
+                scrollHeight = jQuery("#fourthTabDiv")[0].scrollHeight;
+                divHeight = jQuery("#fourthTabDiv").height();
+            }
+        	if(Number(scrollHeight <= Number(divHeight))) {
+        		jQuery("#firstTabTable th:last-child, #firstTabTable td:last-child").remove();
+        		jQuery("#secondTabTable th:last-child, #secondTabTable td:last-child").remove();
+        		jQuery("#thirdTabTable th:last-child, #thirdTabTable td:last-child").remove();
+        		jQuery("#fourthTabTable th:last-child, #fourthTabTable td:last-child").remove();
+        	}
+        
+        }
+        
+        valueFormat = function(inputValue) {
+            if(inputValue == "" || inputValue == null) {
+                    inputValue = "0";
+                }
+                inputValue = inputValue.replace("(", "-").replace(")", "").replace(/[^0-9-.]/g, "");
+                return inputValue;
+        };
+        /**
+        var calProjectGrowth = function(tInput) {
+            var tInputVal = jQuery(tInput).val();
+            var col2Val = jQuery(jQuery(tInput).parent("td").parent("tr").find("td")[3]).find("span").html().replace(/[^0-9-.]/g, '');
+            if(tInputVal != null && !(tInputVal == "")) {
+                var col6Val = formatString(tInputVal, col2Val, 2);
+                jQuery(jQuery(tInput).parent("td").parent("tr").find("td")[6]).find("span").html(col6Val);
+            }else if(tInputVal == "") {
+                var col6Val = formatString(0, col2Val, 2);
+                jQuery(jQuery(tInput).parent("td").parent("tr").find("td")[6]).find("span").html(col6Val);
+            }
+            var theTable = jQuery("*[id*=theNetIncomePageBlockTable]")[0];
+            calYearTotal(theTable, 4);
+            var total = colRollup(theTable, 4, 6);
+            jQuery("#project_growth").text(formatString(total, 0, 2));
+        };
+        
+        var colRollup = function(theTable, tab, col) {
+            var total = 0;
+            jQuery.each(jQuery(theTable).children('tbody').find("tr"), function(key, value) {
+                var spanValue = jQuery(jQuery(value).find("td")[col]).find("span").html();
+                spanValue = spanValue.replace(/[^0-9-.()]/g, '');
+                if(spanValue.indexOf("(") > -1) {
+                    spanValue = -(spanValue.replace("(", "").replace(")", ""));
+                }
+                total += Number(spanValue);
+            });
+            return total;
+            
+        };
+        **/    
+        var formatString = function(tInputVal, col2Val, precision) {
+            var col6Val = Number(tInputVal) - Number(col2Val);
+            if(col6Val < 0) {
+                col6Val = "(" + Number(Math.abs(col6Val)).formatMoney(precision) + ")";
+            }else {
+                col6Val = col6Val.formatMoney(precision);
+            }
+            return col6Val;
+        };
+        
+        var getSelectedTab = function(theTab, t) {
+            var theHiddenSelectedTab = jQuery("*[id*=theHiddenSelectedTab]")[0];
+            if(theTab == 'newKeyHHs') {
+                jQuery(theHiddenSelectedTab).val('newKeyHHs');
+            }else if(theTab == 'advisory') {
+                jQuery(theHiddenSelectedTab).val('advisory');
+            }else if(theTab == 'lending') {
+                jQuery(theHiddenSelectedTab).val('lending');
+            }else if(theTab == 'netIncome') {
+                jQuery(theHiddenSelectedTab).val('netIncome');
+            }else {
+                jQuery(theHiddenSelectedTab).val('newKeyHHs');
+            }
+        };
+        
+        simulativeClick = function(tabName) {
+            
+            var theHiddenSelectedTab = jQuery("*[id*=theHiddenSelectedTab]")[0];
+            var tabVal = jQuery(theHiddenSelectedTab).val();
+            if(tabVal == null){
+                tabVal = 'newKeyHHs';
+            }
+            var tabId = "*[id*=" + jQuery(theHiddenSelectedTab).val() + "_shifted]";
+            var advisory_shifted = jQuery(tabId)[0];
+            jQuery(advisory_shifted).click();
+        }
+        
+        function changeIndexNum() {
+            var theIndex = document.getElementById("{!$Component.theForm.clickTimes}");
+            jQuery(theIndex).val(Number(jQuery(theIndex).val()) + 1);
+        }
+        
+    </script>
+</apex:page>

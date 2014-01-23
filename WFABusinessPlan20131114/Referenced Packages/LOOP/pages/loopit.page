@@ -1,0 +1,17 @@
+<apex:page tabStyle="Loop__Document_Request__c" controller="Loop.loopController">
+    <script type="text/javascript" src="{!$Resource.Loop__JQuery}"></script>
+    <script type="text/javascript">
+        jQuery.noConflict();
+        jQuery(function()
+        {
+            jQuery("#loopit").submit();
+        });
+    </script>
+    <apex:sectionHeader title="Document Queue" subtitle="DDP Enabled by Drawloop"/>
+    <form id="loopit" target="loopif" method="POST" action="{!loopUrl}/SFLogin.aspx">
+        <input type="hidden" name="sessionid" value="{!$Api.Session_Id}" />
+        <input type="hidden" name="location" value="{!$Api.Partner_Server_URL_220}" />
+        <input type="hidden" name="next" value="{!loopitNext}" />
+    </form>
+    <iframe name="loopif" frameborder="0" style="height: 250px; width: 100%;" />
+</apex:page>

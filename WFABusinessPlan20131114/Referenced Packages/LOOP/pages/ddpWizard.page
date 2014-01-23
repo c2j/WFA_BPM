@@ -1,0 +1,818 @@
+<apex:page title="{!$ObjectType.Loop__DDP__c.label} Edit: New {!$ObjectType.Loop__DDP__c.label}" standardController="Loop__DDP__c" extensions="Loop.ddpWizardExt" id="ap">
+    <style>
+        .pointer { cursor: pointer; }
+        .apexp .editPage .bPageBlock .detailList .list .innerPbs td {
+            border-bottom: none;
+        }
+        .fieldTag {
+            display: none;
+            font-size: 115%;
+            float: left;
+        }
+        #selFilesDiv { display: inline-block; position: relative; float: none !important; float: left; }
+        #selFilesHolder { position: absolute; left: 2px; width: 77px; height: 14px; }
+        #selFilesBtn { display: none; }
+        .statusCol { list-style-position:inside; margin:2px; padding:10px; height:5px; }
+        .statusCol .status { margin-right: 8px; }
+        .statusCol .progressbar { border: 1px solid #CCCCCC; }
+        .statusCol .progress{ background:#777D8D; width:0%; height:5px; font-size: 5px; }
+        .nowrap { white-space: nowrap; }
+        table.list td { white-space: nowrap}
+        body .bPageBlock .pbHeader .pbHelp .help .linkCol .linkSpan, body .bPageTitle .ptBody .links .helpLink {
+            color: #FD3838;
+            font-weight: bold;
+        }
+        .myActionColumn { width: 4em; }
+    </style>
+    <apex:includeScript value="{!$Resource.Loop__JQuery}" />
+    <script type="text/javascript">
+        jQuery.noConflict();
+        function changeRecordType(item) {
+            jQuery('[id$=":ddpRecordType"] option:last').after(jQuery('[id$=":ddpRecordType"] option:contains(Custom Object)'));
+            jQuery('[id$=":ddpRecordType"] option:contains(Custom Object)').text('Other...');
+        }
+        jQuery(function() {
+            changeRecordType(jQuery('[id$=":ddpRecordType"]').get(0));
+            jQuery('[id$=":dateMessages"]').parent().attr('colspan', '3');
+            jQuery('form.myForm input').live('keyup', keyUp);
+            if ('{!JSENCODE($Request.retURL)}' != '' && jQuery('#dlbc').size() < 1)
+                jQuery('.bPageTitle:first').append('<div class="ptBreadcrumb" id="dlbc"><a href="{!JSENCODE($Request.retURL)}"> « Back to List: {!JSENCODE($ObjectType.DDP__c.labelplural)}</a></div>');
+        });
+        
+        function sizeInputs() {
+            jQuery(".fieldTag").each(function() {
+                jQuery(this).next().css('width', jQuery(this).innerWidth()+5+'px');
+            });
+        }
+        
+        function keyUp(event) {
+            if (event.keyCode == 38 || event.keyCode == 40) {
+                if (event.target.type != 'textarea' || event.ctrlKey) {
+                    var target = jQuery(event.target);
+                    var targetId = target.attr('id').split(':').pop();
+                    var a = target.parent();
+                    while (!a.is('tr'))
+                        a = a.parent();
+                    switch (event.keyCode) {
+                        case 38:
+                            a = a.prev();
+                            break;
+                        case 40:
+                            a = a.next();
+                            break;
+                    }
+                    a.find('[id$=":'+targetId+'"]').select();
+                }
+            }
+        }
+        
+        function confirmSave() {
+            var selectedFilesCount = jQuery('[id$=":existingFile"][value!=""],[name$=":uploadFile:inputFile:file"][value!=""]').length;
+            var requiredFilesCount = jQuery('[id$=":existingFile"]').length;
+            if (selectedFilesCount != requiredFilesCount) {
+                alert('Please select an existing file or a file to upload.');
+                return false;
+            }
+            return true;
+        }
+        
+        /* Field Tagger */
+        function addPrimaryRole() {
+            jQuery('select.contactRole').append(jQuery('<option />').attr('value', 'IsPrimary').text('Primary'));
+        }
+        
+        function log(msg) {
+            window.console && window.console.log && window.console.log(msg);
+        }
+        function updateData(referenceId, elem) {
+            log('update data for: ' + referenceId);
+            if (elem === undefined) {
+                elem = jQuery('.' + referenceId).parent();
+            }
+            addProcessingIcon(elem);
+            populateData(referenceId);
+        }
+        function handleLookupChange(referenceId) {
+            var $lookup = getLookupField(referenceId);
+            if ($lookup.size() && hasValidId($lookup)) {
+                updateData(referenceId, $lookup.parent());
+            }
+        }
+        function handleDDPChange(referenceId) {
+            var $lookup = getLookupField(referenceId);
+            if (hasValidId($lookup)) {
+                addProcessingIcon($lookup.parent());
+                resetOptions();
+            }
+        }
+        function getLookupField(referenceId) {
+            return jQuery(':input.' + referenceId + ':eq(0)');
+        }
+        function hasValidId($lookup) {
+            if ($lookup.val()) {
+                var $recordIdElement = 
+                	$lookup.attr('id').substring($lookup.attr('id').length - 5) == '_lkid'
+                		? $lookup
+                		: jQuery('[id="' + $lookup.attr('id') + '_lkid' + '"]');
+                return ($recordIdElement.length 
+                    && ($recordIdElement.val().length == 15 || $recordIdElement.val().length == 18));
+            }
+            return false;
+        }
+        function handleKeyPrefixOverride(referenceId, keyPrefix) {
+            $lookup = getLookupField(referenceId);
+                log('override key prefix: ' + referenceId + ', ' + keyPrefix);
+            if ($lookup.size()) {
+                var elem = document.getElementById($lookup.attr('id') + '_lktp');
+                if (elem) elem.value = keyPrefix;
+            }
+        }
+        function addProcessingIcon(elem) {
+            jQuery(elem).append('• • •');
+            //jQuery(elem).append('<span class="statusContainer"><span class="status"><img src="/img/loading.gif" alt="Processing..." width="16" height="16" title="Processing..." /></span></span>');
+        }
+        
+        function selectChatterGroup() {
+        	var selectGroupUrl = '{!JSENCODE($Page.ddpEdit)}?type=chattergroups';
+        	var selectGroupWin = window.open(selectGroupUrl, "SelectChatterGroup", "directories=no,height=600,location=no,scrollbars=yes,menubar=no,toolbar=no,width=850");
+        }
+        function setChatterGroupId(groupId, groupName) {
+        	chatterGroupInfo(groupId, groupName);
+        }
+    </script>
+    <apex:sectionHeader title="{!$ObjectType.Loop__DDP__c.label} Wizard" subtitle="New {!$ObjectType.Loop__DDP__c.label}" help="http://support.drawloop.com/lds/#!/lds/getting-started/create-new-ddps/#Documentation" />
+    <apex:pageMessages id="pageMessages" />
+    <apex:form id="myform" styleClass="myForm">
+        <apex:actionFunction name="nextTab" id="nextTabFctn" rerender="pageMessages" />
+        <apex:actionFunction name="chatterGroupInfo" id="chatterGroupInfoFctn" rerender="pageMessages,chatterGroupSelectPanel,iutable">
+        	<apex:param name="groupId" assignTo="{!selectedIU.chatterGroupId}" value="" />
+        	<apex:param name="groupName" assignTo="{!selectedIU.chatterGroupName}" value="" />
+        </apex:actionFunction>
+        <apex:tabPanel switchType="server" tabClass="pointer" value="{!tabInFocus}" id="tabPanel" rerender="pageMsgPanel">
+            <apex:tab label="Basics{!IF(basicsComplete,' √','')}" id="basics" name="basics" rerender="pageMessages">
+            <apex:actionRegion >
+                <apex:pageBlock title="{!$ObjectType.Loop__DDP__c.label} Edit" mode="edit" helpUrl="http://support.drawloop.com/salesforce/looplus/ddp-wizard/basics/" helpTitle="Help for this Section">
+                    <apex:pageBlockButtons location="top">
+                        <apex:commandButton value="Next" action="{!nextTab}" rerender="pageMessages,tabPanel" status="basicNextStatus" />
+                        <apex:commandButton value="Cancel" action="{!cancel}" immediate="true" />
+                        <apex:actionStatus id="basicNextStatus" startText="• • •" stopText="" />
+                    </apex:pageBlockButtons>
+                    <apex:pageBlockSection title="Information" id="ddpInfoBlock">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel for="ddpName" value="{!$ObjectType.Loop__DDP__c.label} {!$ObjectType.Loop__DDP__c.fields.Name.label}" />
+                            <apex:outputPanel layout="block" styleClass="requiredInput">
+                                <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                <apex:inputField value="{!ddp.Name}" id="ddpName" />
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:inputField value="{!ddp.Loop__Output_Filename__c}" />
+                        <apex:inputField value="{!ddp.Loop__Description__c}" />
+                        <apex:pageBlockSectionItem helpText="What object will this {!$ObjectType.Loop__DDP__c.label} be available from?">
+                            <apex:outputLabel for="ddpRecordType" value="{!$ObjectType.Loop__DDP__c.label} Starting Object" />
+                            <apex:outputPanel layout="block" styleClass="requiredInput">
+                                <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                <apex:inputField value="{!ddp.RecordTypeId}" id="ddpRecordType">
+                                    <apex:actionSupport event="onchange" action="{!changeObjects}" rerender="pageMessages,ddpInfoBlock,fieldTaggerBlock" status="recordTypeStatus" oncomplete="changeRecordType();" />
+                                </apex:inputField>
+                                <apex:actionStatus startText="• • •" stopText="" id="recordTypeStatus" styleClass="nowrap" />
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem />
+                        <apex:pageBlockSectionItem rendered="{!ddpRTName='Custom Object'}" id="objectItem" helpText="Standard objects not listed need to be set at the {!$ObjectType.Loop__DDP__c.label} Record Type level.">
+                            <apex:outputLabel for="objectName" value="{!$ObjectType.Loop__DDP__c.fields.Loop__Object_Name_Link__c.label}" />
+                            <apex:outputPanel layout="block" styleClass="requiredInput">
+                                <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                    <apex:selectList rendered="{!ddpRTName='Custom Object'}" id="objectName" value="{!ddp.Loop__Object_Name__c}" size="1">
+                                        <apex:selectOptions value="{!ddpCustomObjects}" />
+                                        <apex:actionSupport event="onchange" action="{!changeObjects}" rerender="pageMessages,fieldTaggerBlock" status="customObjectStatus" />
+                                    </apex:selectList>
+                                <apex:actionStatus startText="• • •" stopText="" id="customObjectStatus" styleClass="nowrap" />
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection title="Options">
+                        <apex:inputField value="{!ddp.Loop__RequireContact__c}" />
+                        <apex:pageBlockSectionItem helpText="Allow or require users to select documents attached to the main object and certain related objects.">
+                            <apex:outputLabel for="incAttach" value="Include Attachments" />
+                            <apex:selectList id="incAttach" size="1" value="{!includeAttachments}">
+                                <apex:selectOption itemValue="" itemLabel="--None--" />
+                                <apex:selectOption itemValue="Allow" />
+                                <apex:selectOption itemValue="Require" />
+                            </apex:selectList>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection columns="1" title="Security" id="securityPBS">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Search:" for="secSearchType" />
+                            <apex:outputPanel >
+                                <apex:selectList size="1" id="secSearchType" value="{!secSearchType}">
+                                    <apex:selectOption itemLabel="{!$ObjectType.Profile.labelplural}" itemValue="profiles" />
+                                    <apex:selectOption itemLabel="{!$ObjectType.UserRole.labelplural}" itemValue="roles" />
+                                    <apex:actionSupport event="onchange" action="{!resetSecList}" status="secSearchStatus" rerender="pageMessages,duel" />
+                                </apex:selectList>
+                                <apex:outputLabel value="for:" for="searchFilter" />
+                                <apex:inputText value="{!searchFilter}" />
+                                <apex:commandButton value="Find" action="{!resetSecList}" status="secSearchStatus" rerender="pageMessages,duel" />
+                                <apex:actionStatus startText="• • •" stopText="" id="secSearchStatus" styleClass="nowrap" />
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel />
+                            <apex:outputPanel id="duel" styleClass="duelingListBox">
+                                <apex:outputText id="resultsErrMsg" styleClass="errorMsg" value="{!resultsErrMsg}" />
+                                <table class="layout"> <tr>
+                                    <td class="selectCell">
+                                        <div class="selectTitle">
+                                            <apex:outputLabel value="Available Security" for="secIds" styleClass="selectTitle" />
+                                        </div>
+                                        <apex:selectList size="14" multiselect="true" id="secIds" value="{!highlightedIds}">
+                                            <apex:selectOptions value="{!availableSecurity}" />
+                                        </apex:selectList>
+                                        <script type="text/javascript">
+                                            jQuery(function() {
+                                                var errMsg = '{!resultsErrMsg}';
+                                                if (errMsg) jQuery('[id$=":resultsErrMsg"]').text(errMsg);
+                                            });
+                                        </script>
+                                    </td>
+                                    <td class="buttonCell">
+                                        <div class="text">Add<apex:actionStatus startText=". . ." stopText="" id="addStatus" styleClass="nowrap" /></div>
+                                        <div class="text">
+                                            <apex:commandLink action="{!addSecurity}" status="addStatus" rerender="pageMessages,duel">
+                                                <apex:image title="Add" styleClass="rightArrowIcon" alt="Add" value="/s.gif" />
+                                            </apex:commandLink>
+                                        </div>
+                                        <div class="text">
+                                            <apex:commandLink action="{!removeSecurity}" status="remStatus" rerender="pageMessages,duel">
+                                                <apex:image title="Remove" styleClass="leftArrowIcon" alt="Remove" value="/s.gif" />
+                                            </apex:commandLink>
+                                        </div>
+                                        <div class="duelingText">Remove<apex:actionStatus startText=". . ." stopText="" id="remStatus" styleClass="nowrap" /></div>
+                                    </td>
+                                    <td class="selectCell">
+                                        <div class="selectTitle">
+                                            <apex:outputLabel value="Selected Security" for="selectedSecIds" styleClass="selectTitle" />
+                                        </div>
+                                        <apex:selectList size="14" multiselect="true" id="selectedSecIds" value="{!selectedIds}">
+                                            <apex:selectOptions value="{!selectedSecurity}" />
+                                        </apex:selectList>
+                                    </td>
+                                </tr> </table>
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Security Type" for="secType" />
+                            <apex:selectList size="1" id="secType" value="{!securityType}">
+                                <apex:selectOption itemValue="both" itemLabel="Match {!$ObjectType.Profile.label} OR {!$ObjectType.UserRole.label}" />
+                                <apex:selectOption itemValue="bothand" itemLabel="Match {!$ObjectType.Profile.label} AND {!$ObjectType.UserRole.label}" />
+                            </apex:selectList>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </apex:actionRegion>
+            </apex:tab>
+            <apex:tab label="{!$ObjectType.Loop__DDP_Integration_Option__c.labelplural}{!IF(deliveriesComplete,' √','')}" id="deliveries" name="deliveries" rerender="pageMessages">
+            <apex:actionRegion >
+                <apex:pageBlock title="{!$ObjectType.Loop__DDP__c.label} Edit" mode="edit" helpUrl="http://support.drawloop.com/salesforce/looplus/ddp-wizard/delivery-options/" helpTitle="Help for this Section">
+                    <apex:pageBlockButtons location="top">
+                        <apex:commandButton value="Next" action="{!nextTab}" rerender="pageMessages,tabPanel" status="deliveryNextStatus" />
+                        <apex:commandButton value="Cancel" action="{!cancel}" immediate="true" />
+                        <apex:actionStatus id="deliveryNextStatus" startText="• • •" stopText="" />
+                    </apex:pageBlockButtons>
+                    <apex:pageBlockSection title="{!$ObjectType.Loop__DDP_Integration_Option__c.labelplural}" columns="1">
+                        <apex:pageBlockTable value="{!customDeliveries}" var="cio" id="cioTable">
+                            <apex:column headerValue="Action" styleClass="myActionColumn">
+                                <apex:commandLink value="remove" styleClass="cancelRow action" rendered="{!showDeliveryRemoveAction}" action="{!removeDelivery}">
+                                    <apex:param assignTo="{!selectedIndex}" name="selectedIndex" value="{!cio.index}" />
+                                </apex:commandLink>
+                            </apex:column>
+                            <apex:column headerValue="Type">
+                                <apex:outputPanel layout="block" styleClass="requiredInput">
+                                    <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                    <apex:selectList size="1" value="{!cio.c.RecordTypeId}">
+                                        <apex:selectOption itemValue="" itemLabel="--None--" />
+                                        <apex:selectOptions value="{!recordTypeList}" />
+                                        <apex:actionSupport event="onchange" action="{!cio.deliveryChange}" status="deliveryTypeStatus" rerender="pageMessages,cioTable,fieldTaggerBlock" />
+                                    </apex:selectList>
+                                    <apex:actionStatus startText="• • •" stopText="" id="deliveryTypeStatus" styleClass="nowrap" />
+                                </apex:outputPanel>
+                            </apex:column>
+                            <apex:column headerValue="{!$ObjectType.Loop__DDP_Integration_Option__c.fields.Name.label}">
+                                <apex:outputPanel layout="block" styleClass="requiredInput">
+                                    <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                    <apex:inputField value="{!cio.c.Name}" />
+                                </apex:outputPanel>
+                            </apex:column>
+                            <apex:column id="storeDocCol" headerValue="Document Storage">
+                                <apex:selectList size="1" value="{!cio.docStorage}" disabled="{!cio.disableDocStorage}">
+                                    <apex:selectOption itemValue="" itemLabel="--None--" />
+                                    <apex:selectOption itemValue="Allow" />
+                                    <apex:selectOption itemValue="Require" />
+                                    <apex:actionSupport event="onchange" action="{!cio.removeAttachAs}" status="docStoreStatus" rerender="pageMessages,cioTable" />
+                                </apex:selectList>
+                                <apex:actionStatus startText="• • •" stopText="" id="docStoreStatus" styleClass="nowrap" />
+                            </apex:column>
+                            <apex:column id="attachAsCol" headerValue="{!$ObjectType.Loop__DDP_Integration_Option__c.fields.Loop__Attach_As__c.label}">
+                                <apex:selectList size="1" value="{!cio.attachAs}" disabled="{!cio.disableStoreAs}">
+                                    <apex:selectOptions value="{!cio.storeAsOptions}" />
+                                    <apex:actionSupport event="onchange" status="attachAsStatus" rerender="pageMessages,cioTable" />
+                                </apex:selectList>
+                                <apex:actionStatus startText="• • •" stopText="" id="attachAsStatus" style="display: block;" styleClass="nowrap" />
+                            </apex:column>
+                            <apex:column >
+                                <apex:selectList size="1" rendered="{!cio.showLibrary}" value="{!cio.c.Loop__WorkspaceId__c}">
+                                    <apex:selectOption itemValue="" itemLabel="--Library--" />
+                                    <apex:selectOptions value="{!workspaces}" />
+                                </apex:selectList>
+                            </apex:column>
+                            <apex:column headerValue="{!$ObjectType.Loop__DDP_Integration_Option__c.fields.Loop__Output__c.label}">
+                                <apex:inputField value="{!cio.c.Loop__Output__c}" />
+                            </apex:column>
+                            <apex:column headerValue="{!$ObjectType.Loop__DDP_Integration_Option__c.fields.Loop__Description_Hover__c.label}">
+                                <apex:inputField value="{!cio.c.Loop__Description_Hover__c}" />
+                            </apex:column>
+                            <apex:column headerValue="{!$ObjectType.Loop__DDP_Integration_Option__c.fields.Loop__Order__c.label}">
+                                <apex:inputField value="{!cio.c.Loop__Order__c}" style="width: 4em;" />
+                            </apex:column>
+                        </apex:pageBlockTable>
+                        <apex:outputPanel >
+                            <apex:commandLink value="Add {!$ObjectType.Loop__DDP_Integration_Option__c.label}" action="{!addDelivery}" status="addDeliveryStatus" rerender="pageMessages,cioTable" />
+                            <apex:actionStatus startText="• • •" stopText="" id="addDeliveryStatus" styleClass="nowrap" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </apex:actionRegion>
+            </apex:tab>
+            <apex:tab label="{!$ObjectType.Loop__Related_Object__c.labelplural}{!IF(relationshipsComplete,' √','')}" id="relationships" name="relationships" rerender="pageMessages">
+                <apex:actionRegion >
+                    <apex:pageBlock title="{!$ObjectType.Loop__DDP__c.label} Edit" mode="edit" helpUrl="http://support.drawloop.com/salesforce/looplus/ddp-wizard/relationships/" helpTitle="Help for this Section">
+                        <apex:pageBlockButtons location="top">
+                            <apex:commandButton value="Next" action="{!nextTab}" rerender="pageMessages,tabPanel" status="relationshipNextStatus" />
+                            <apex:commandButton value="Cancel" action="{!cancel}" immediate="true" />
+                            <apex:actionStatus id="relationshipNextStatus" startText="• • •" stopText="" />
+                        </apex:pageBlockButtons>
+                        <apex:pageBlockSection title="{!$ObjectType.Loop__Related_Object__c.labelplural}" columns="1">
+                            <apex:pageBlockTable value="{!relatedObjects}" var="ro" id="roTable">
+                                <apex:column headerValue="Action" styleClass="myActionColumn">
+                                    <apex:commandLink value="remove" styleClass="cancelRow action" rendered="{!showRelationshipRemoveAction}" action="{!removeRelationship}">
+                                        <apex:param assignTo="{!selectedIndex}" name="selectedIndex" value="{!ro.index}" />
+                                    </apex:commandLink>
+                                </apex:column>
+                                <apex:column headerValue="{!$ObjectType.Loop__Related_Object__c.fields.Name.label}">
+                                    <apex:outputPanel layout="block" styleClass="requiredInput">
+                                        <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                        <apex:selectList size="1" value="{!ro.ro.Name}" id="relatedObject">
+                                            <apex:selectOption itemValue="" itemLabel="--None--" />
+                                            <apex:selectOptions value="{!relationshipObjects}" />
+                                            <apex:actionSupport event="onchange" action="{!ro.relObjChange}" status="relObjStatus" rerender="pageMessages,orderByPanel,parObjPanel,hierarchyFieldColumn,fieldTaggerBlock" />
+                                        </apex:selectList>
+                                        <apex:actionStatus startText="• • •" stopText="" id="relObjStatus" styleClass="nowrap" />
+                                    </apex:outputPanel>
+                                </apex:column>
+                                <apex:column headerValue="{!$ObjectType.Loop__Related_Object__c.fields.Loop__Parent_Object__c.label}">
+                                    <apex:outputPanel layout="block" styleClass="requiredInput" id="parObjPanel">
+                                        <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                        <apex:selectList size="1" value="{!ro.ro.Loop__Parent_Object__c}" id="relatedParent">
+                                            <apex:selectOption itemValue="" itemLabel="--None--" />
+                                            <apex:selectOptions value="{!ro.parentObjects}" />
+                                            <apex:actionSupport event="onchange" action="{!changeParentObjects}" status="relObjParStatus" rerender="pageMessages,fieldTaggerBlock" />
+                                        </apex:selectList>
+                                        <apex:actionStatus startText="• • •" stopText="" id="relObjParStatus" styleClass="nowrap" />
+                                    </apex:outputPanel>
+                                </apex:column>
+                                <apex:column headerValue="{!$ObjectType.Loop__Related_Object__c.fields.Loop__Order_By__c.label}">
+                                    <apex:outputPanel id="orderByPanel">
+                                        <apex:selectList size="1" value="{!ro.ro.Loop__Order_By__c}">
+                                            <apex:selectOption itemValue="" itemLabel="--None--" />
+                                            <apex:selectOptions value="{!ro.orderByFields}" />
+                                        </apex:selectList>
+                                    </apex:outputPanel>
+                                </apex:column>
+                                <apex:column headerValue="Descending">
+                                    <apex:inputCheckbox value="{!ro.descending}" />
+                                </apex:column>
+                                <apex:column headerValue="{!$ObjectType.Loop__Related_Object__c.fields.Loop__Copy_Type__c.label}">
+                                    <apex:inputField value="{!ro.ro.Loop__Copy_Type__c}">
+                                        <apex:actionSupport event="onchange" action="{!changeParentObjects}" status="copyTypeStatus" reRender="pageMessages,fieldTaggerBlock,hierarchyFieldColumn" />
+                                    </apex:inputField>
+                                    <apex:actionStatus startText="• • •" stopText="" id="copyTypeStatus" styleClass="nowrap" />
+                                </apex:column>
+                                <apex:column id="hierarchyFieldColumn">
+                                    <apex:outputPanel rendered="{!ro.ro.Loop__Copy_Type__c='Hierarchy'}">
+                                        <apex:selectList size="1" value="{!ro.ro.Loop__Hierarchy_Field__c}">
+                                            <apex:selectOption itemValue="" itemLabel="--{!$ObjectType.Loop__Related_Object__c.fields.Loop__Hierarchy_Field__c.label}--" />
+                                            <apex:selectOptions value="{!ro.hierarchyFields}" />
+                                        </apex:selectList>
+                                    </apex:outputPanel>
+                                </apex:column>
+                            </apex:pageBlockTable>
+                            <apex:outputPanel >
+                                <apex:commandLink value="Add {!$ObjectType.Loop__Related_Object__c.label}" action="{!addRelatedObject}" status="addRelObjStatus" rerender="pageMessages,roTable" />
+                                <apex:actionStatus startText="• • •" stopText="" id="addRelObjStatus" styleClass="nowrap" />
+                            </apex:outputPanel>
+                        </apex:pageBlockSection>
+                    </apex:pageBlock>
+                </apex:actionRegion>
+            </apex:tab>
+            <apex:tab label="{!$ObjectType.Loop__Insert_Update__c.labelplural}{!IF(insertUpdatesComplete,' √','')}" id="insertUpdates" name="insertUpdates" rerender="pageMessages">
+                <apex:actionRegion >
+                    <apex:pageBlock title="{!$ObjectType.Loop__DDP__c.label} Edit" mode="edit" helpUrl="http://support.drawloop.com/salesforce/looplus/ddp-wizard/insert-updates/" helpTitle="Help for this Section">
+                        <apex:pageBlockButtons location="top">
+                            <apex:commandButton value="Next" action="{!nextTab}" rerender="pageMessages,tabPanel" status="insertUpdateNextStatus" />
+                            <apex:commandButton value="Cancel" action="{!cancel}" immediate="true" />
+                            <apex:actionStatus id="insertUpdateNextStatus" startText="• • •" stopText="" />
+                        </apex:pageBlockButtons>
+                        <apex:pageBlockSection title="{!$ObjectType.Loop__Insert_Update__c.labelplural}" columns="1">
+                            <apex:pageMessage severity="info" strength="1" summary="To update multiple fields, add the same object as many times as necessary." />
+                            <apex:pageBlockTable value="{!insertUpdates}" var="iu" id="iuTable">
+                                <apex:column headerValue="Action" styleClass="myActionColumn">
+                                    <apex:commandLink value="remove" styleClass="cancelRow action" rendered="{!showInsertUpdateRemoveAction}" action="{!removeInsertUpdate}">
+                                        <apex:param assignTo="{!selectedIndex}" name="selectedIndex" value="{!iu.index}" />
+                                    </apex:commandLink>
+                                </apex:column>
+                                <apex:column headerValue="Type" style="width: 13%">
+                                    <apex:selectList size="1" value="{!iu.iuType}">
+                                        <apex:selectOption itemValue="" itemLabel="--None--" />
+                                        <apex:selectOption itemValue="Chatter Post" itemLabel="Chatter Post" rendered="{!hasChatter}" />
+                                        <apex:selectOption itemValue="Task" itemLabel="{!$ObjectType.Task.label}" />
+                                        <apex:selectOption itemValue="Field Update" itemLabel="Field Update" />
+                                        <apex:actionSupport event="onchange" status="iuTypeStatus" reRender="pageMessages,iuTable" />
+                                    </apex:selectList>
+                                    <apex:actionStatus startText="• • •" stopText="" id="iuTypeStatus" styleClass="nowrap" />
+                                </apex:column>
+                                <apex:column headerValue="Options" id="optionsCol">
+                                    <apex:outputPanel rendered="{!iu.iuType=='Field Update'}" styleClass="innerPbs">
+                                        <apex:pageBlockSection columns="3">
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="updateObject" value="{!$ObjectType.Loop__Insert_Update__c.fields.Name.label}" />
+                                                <apex:outputPanel layout="block" styleClass="requiredInput">
+                                                    <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                                    <apex:selectList size="1" id="updateObject" value="{!iu.updateObject}">
+                                                        <apex:selectOption itemValue="" itemLabel="--None--" />
+                                                        <apex:selectOptions value="{!updateObjects}" />
+                                                        <apex:actionSupport event="onchange" action="{!iu.changeFields}" status="iuObjStatus" reRender="pageMessages,iuTable" />
+                                                    </apex:selectList>
+                                                    <apex:actionStatus startText="• • •" stopText="" id="iuObjStatus" styleClass="nowrap" />
+                                                </apex:outputPanel>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="updateField" value="Field to Update" />
+                                                <apex:outputPanel layout="block" styleClass="requiredInput">
+                                                    <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                                    <apex:selectList size="1" id="updateField" value="{!iu.updateField}">
+                                                        <apex:selectOption itemValue="" itemLabel="--None--" />
+                                                        <apex:selectOptions value="{!iu.availableFields}" />
+                                                    </apex:selectList>
+                                                </apex:outputPanel>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="updateValue" value="Value" />
+                                                <apex:outputPanel layout="block" styleClass="requiredInput">
+                                                    <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                                    <apex:inputText value="{!iu.updateValue}" />
+                                                </apex:outputPanel>
+                                            </apex:pageBlockSectionItem>
+                                        </apex:pageBlockSection>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="block" rendered="{!iu.iuType=='Task'}" styleClass="innerPbs">
+                                        <apex:pageBlockSection >
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="taskSubject" value="{!$ObjectType.Task.fields.Subject.label}" />
+                                                <apex:outputPanel layout="block" styleClass="requiredInput">
+                                                    <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                                    <apex:inputField value="{!iu.iuTask.Subject}" id="taskSubject" />
+                                                </apex:outputPanel>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="taskStatus" value="{!$ObjectType.Task.fields.Status.label}" />
+                                                <apex:outputPanel layout="block" styleClass="requiredInput">
+                                                    <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                                    <apex:inputField value="{!iu.iuTask.Status}" required="false" id="taskStatus" />
+                                                </apex:outputPanel>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="taskDate" value="{!$ObjectType.OpenActivity.fields.ActivityDate.label}" />
+                                                <apex:outputPanel >
+                                                    <apex:selectList size="1" value="{!iu.taskDate}" id="taskDate">
+                                                        <apex:selectOption itemValue="Today" />
+                                                        <apex:selectOption itemValue="Today+" itemLabel="Today plus" />
+                                                        <apex:actionSupport event="onchange" status="dueDateStatus" reRender="pageMessages,iuTable" />
+                                                    </apex:selectList>
+                                                    <apex:actionStatus startText="• • •" stopText="" id="dueDateStatus" styleClass="nowrap" />
+                                                    <apex:inputText value="{!iu.taskAddDays}" size="5" rendered="{!iu.taskDate=='Today+'}" />
+                                                </apex:outputPanel>
+                                            </apex:pageBlockSectionItem>
+                                        </apex:pageBlockSection>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!iu.iuType=='Chatter Post'}" styleClass="innerPbs">
+                                        <apex:pageBlockSection >
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="postSubject" value="{!$ObjectType.Task.fields.Subject.label}" />
+                                                <apex:outputPanel layout="block" styleClass="requiredInput">
+                                                    <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                                    <apex:inputText value="{!iu.postSubject}" id="postSubject" size="30" />
+                                                </apex:outputPanel>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                                <apex:outputLabel for="postDoc" value="Include {!$ObjectType.Loop__DDP__c.label} output in Post" />
+                                                <apex:inputCheckbox id="postDoc" value="{!iu.postDoc}" />
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                            	<apex:outputLabel for="postTo" value="Post To" />
+                                            	<apex:outputPanel >
+	                                            	<apex:selectList id="postTo" size="1" value="{!iu.postTo}">
+				                                        <apex:selectOptions value="{!ft.availableObjects}" />
+				                                        <apex:selectOption itemLabel="{!$ObjectType['CollaborationGroup'].label}" itemValue="chatterGroup" />
+				                                        <apex:actionSupport event="onchange" reRender="chatterGroupSelectPanel" status="postToStatus" />
+				                                    </apex:selectList>
+				                                    <apex:actionStatus startText="• • •" stopText="" id="postToStatus" styleClass="nowrap" />
+			                                    </apex:outputPanel>
+                                            </apex:pageBlockSectionItem>
+                                            <apex:pageBlockSectionItem >
+                                            	<apex:outputPanel id="chatterGroupSelectPanel">
+                                            		<apex:outputPanel rendered="{!iu.postTo=='chatterGroup'}">
+                                            			<apex:commandLink rendered="{!iu.chatterGroupId==''}" onclick="selectChatterGroup();" action="{!iu.selectInsertUpdate}" value="Select {!$ObjectType['CollaborationGroup'].label}" rerender="chatterGroupSelectPanel,iutable" />
+                                            			<apex:outputLink rendered="{!iu.chatterGroupId!=''}" value="/{!iu.chatterGroupId}" target="_blank">{!iu.chatterGroupName}</apex:outputLink>
+                                            			<apex:commandLink rendered="{!iu.chatterGroupId!=''}" onclick="selectChatterGroup();" value=" [change]" />
+                                            		</apex:outputPanel>
+                                            	</apex:outputPanel>
+                                            </apex:pageBlockSectionItem>
+                                        </apex:pageBlockSection>
+                                    </apex:outputPanel>
+                                </apex:column>
+                            </apex:pageBlockTable>
+                            <apex:outputPanel >
+                                <apex:commandLink value="Add {!$ObjectType.Loop__Insert_Update__c.label}" action="{!addInsertUpdate}" status="addIUStatus" rerender="pageMessages,iuTable" />
+                                <apex:actionStatus startText="• • •" stopText="" id="addIUStatus" styleClass="nowrap" />
+                            </apex:outputPanel>
+                        </apex:pageBlockSection>
+                    </apex:pageBlock>
+                </apex:actionRegion>
+            </apex:tab>
+            <apex:tab label="Tag {!$ObjectType.Document.labelplural}{!IF(tagDocsComplete,' √','')}" id="fieldTagger" name="fieldTagger" rerender="pageMessages">
+                <apex:actionRegion >
+                    <apex:pageBlock title="{!$ObjectType.Loop__DDP__c.label} Edit" mode="edit" id="fieldTaggerBlock" helpUrl="http://support.drawloop.com/salesforce/looplus/ddp-wizard/tag-documents/" helpTitle="Help for this Section">
+                        <apex:actionFunction action="{!ft.populateData}" name="populateData" rerender="lookupPanel,fieldtags">
+                            <apex:param name="referenceId" assignTo="{!ft.updatedReferenceId}" value="" />
+                        </apex:actionFunction>
+                        <apex:pageBlockButtons location="top">
+                            <apex:commandButton value="Next" action="{!nextTab}" rerender="pageMessages,tabPanel" status="tagDocsNextStatus" />
+                            <apex:commandButton value="Cancel" action="{!cancel}" immediate="true" />
+                            <apex:actionStatus id="tagDocsNextStatus" startText="• • •" stopText="" />
+                        </apex:pageBlockButtons>
+                        <apex:pageBlockSection title="Field Tagger">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="mainObj" value="Main Object" />
+                                <apex:outputPanel >
+                                    <apex:selectList id="mainObj" size="1" value="{!ft.mainObject}">
+                                        <apex:selectOptions value="{!ft.availableObjects}" />
+                                        <apex:actionSupport event="onchange" action="{!ft.mainObjectChange}" reRender="lookupPanel,aliasLabelPanel,aliasPanel,rolePanel,roleLabelPanel,objectFieldsPanel,lookupFieldsLabelPanel,lookupFieldsPanel,formatLabelPanel,formatPanel,dateMessages,fieldtags,recipientLabelPanel,recipientPanel" oncomplete="sizeInputs();" status="mainObjStatus" />
+                                    </apex:selectList>
+                                    <apex:actionStatus startText="• • •" stopText="" id="mainObjStatus" />                          
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel for="docType" value="Document Type" />
+                                <apex:outputPanel >
+                                    <apex:selectList id="docType" size="1" value="{!ft.documentType}">
+                                        <apex:selectOption itemLabel="Word/PowerPoint" itemValue="doc" />
+                                        <apex:selectOption itemLabel="Excel/PDF" itemValue="xls" />
+                                        <apex:selectOption itemLabel="DocuSign Template" itemValue="dpd" rendered="{!ft.hasDsCio}" />
+                                        <apex:actionSupport event="onchange" action="{!ft.changeField}" reRender="fieldtags" oncomplete="sizeInputs();" status="docTypeStatus" />
+                                    </apex:selectList>
+                                    <apex:actionStatus startText="• • •" stopText="" id="docTypeStatus" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem id="fieldpbsi">
+                                <apex:outputLabel for="field" value="Field" />
+                                <apex:outputPanel id="objectFieldsPanel">
+                                    <apex:selectList id="field" size="1" value="{!ft.field}">
+                                        <apex:selectOptions value="{!ft.objectFields}" />
+                                        <apex:actionSupport event="onchange" reRender="aliasLabelPanel,aliasPanel,lookupFieldsLabelPanel,lookupFieldsPanel,formatLabelPanel,formatPanel,dateMessages,fieldtags" action="{!ft.changeField}" oncomplete="sizeInputs();" status="objFldStatus" />
+                                    </apex:selectList>
+                                    <apex:actionStatus startText="• • •" stopText="" id="objFldStatus" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel id="roleLabelPanel">
+                                    <apex:outputLabel value="Role Name" rendered="{!ft.showContactRoles}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel id="rolePanel">
+                                    <apex:outputPanel rendered="{!ft.mainObject=='OpportunityContactRole'}">
+                                        <apex:inputField value="{!ft.ocr.Role}" styleClass="contactRole">
+                                            <apex:actionSupport event="onchange" action="{!ft.changeFieldTags}" reRender="fieldtags" oncomplete="sizeInputs();" status="contactRoleStatus" />
+                                        </apex:inputField>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!ft.mainObject=='AccountContactRole'}">
+                                        <apex:inputField value="{!ft.acr.Role}" styleClass="contactRole">
+                                            <apex:actionSupport event="onchange" action="{!ft.changeFieldTags}" reRender="fieldtags" oncomplete="sizeInputs();" status="contactRoleStatus" />
+                                        </apex:inputField>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!ft.mainObject=='ContractContactRole'}">
+                                        <apex:inputField value="{!ft.ccr.Role}" styleClass="contactRole">
+                                            <apex:actionSupport event="onchange" action="{!ft.changeFieldTags}" reRender="fieldtags" oncomplete="sizeInputs();" status="contactRoleStatus" />
+                                        </apex:inputField>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!ft.mainObject=='CaseContactRole'}">
+                                        <apex:inputField value="{!ft.cacr.Role}" styleClass="contactRole">
+                                            <apex:actionSupport event="onchange" action="{!ft.changeFieldTags}" reRender="fieldtags" oncomplete="sizeInputs();" status="contactRoleStatus" />
+                                        </apex:inputField>
+                                    </apex:outputPanel>
+                                    <apex:actionStatus startText="• • •" stopText="" id="contactRoleStatus" />                          
+                                    <script>addPrimaryRole();</script>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel id="recipientLabelPanel">
+                                    <apex:outputLabel value="{!$ObjectType.Loop__dsRecipient__c.label}" for="recipient" rendered="{!ft.mainObject=='Recipients'}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel id="recipientPanel">
+                                    <apex:selectList id="recipient" size="1" rendered="{!ft.mainObject=='Recipients'}" value="{!ft.recipient}">
+                                        <apex:selectOptions value="{!ft.recipientList}" />
+                                        <apex:actionSupport event="onchange" action="{!ft.changeRecipient}" reRender="objectFieldsPanel,fieldtags" oncomplete="sizeInputs();" status="recipientStatus" />
+                                    </apex:selectList>
+                                    <apex:actionStatus startText="• • •" stopText="" id="recipientStatus" />                            
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem />
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel id="aliasLabelPanel">
+                                    <apex:outputLabel value="Alias" rendered="{!ft.showAliasOptions}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel id="aliasPanel">
+                                    <apex:selectList id="aliases" size="1" rendered="{!ft.showAliasOptions}" value="{!ft.alias}">
+                                        <apex:selectOptions value="{!ft.aliasOptions}" />
+                                        <apex:actionSupport event="onchange" action="{!ft.changeFieldTags}" reRender="fieldtags" oncomplete="sizeInputs();" status="aliasStatus" />
+                                    </apex:selectList>
+                                    <apex:actionStatus startText="• • •" stopText="" id="aliasStatus" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel id="lookupFieldsLabelPanel">
+                                    <apex:outputLabel for="lookupFields" value="Lookup Object Field" rendered="{!NOT(ft.lookupFieldsDisabled)}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel id="lookupFieldsPanel">
+                                    <apex:selectList id="lookupFields" size="1" value="{!ft.lookupObjectField}" rendered="{!NOT(ft.lookupFieldsDisabled)}">
+                                        <apex:selectOptions value="{!ft.lookupObjectFields}" />
+                                        <apex:actionSupport event="onchange" reRender="aliasLabelPanel,aliasPanel,formatLabelPanel,formatPanel,dateMessages,fieldtags" action="{!ft.changeLookupField}" oncomplete="sizeInputs();" status="lkupFldStatus" />
+                                    </apex:selectList>
+                                    <apex:actionStatus startText="• • •" stopText="" id="lkupFldStatus" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel id="formatLabelPanel">
+                                    <apex:outputLabel for="format" value="Format" rendered="{!NOT(ft.formatDisabled)}" />
+                                </apex:outputPanel>
+                                <apex:outputPanel id="formatPanel">
+                                    <apex:selectList id="format" size="1" value="{!ft.format}" rendered="{!NOT(ft.formatDisabled)}">
+                                        <apex:selectOptions value="{!ft.formatOptions}" />
+                                        <apex:actionSupport event="onchange" reRender="fieldtags" action="{!ft.changeFieldTags}" oncomplete="sizeInputs();" status="formatChangeStatus" />
+                                    </apex:selectList>
+                                    <apex:actionStatus startText="• • •" stopText="" id="formatChangeStatus" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem />
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel />
+                                <apex:outputPanel id="dateMessages">
+                                    <apex:outputPanel rendered="{!ft.isDateFormat}">
+                                        * These options change formats based on the user's locale.<br />
+                                        Day and month names will be determined by the user's locale.<br />
+                                        Date values passed into Excel will be formatted as specified in the cell formatting.
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        <apex:outputPanel id="lookupPanel">
+                            <apex:pageBlockSection title="Lookup Data" columns="1" rendered="{!!ISBLANK(ft.CurrentRecordDataList)}">
+                                <apex:repeat var="data" value="{!ft.CurrentRecordDataList}">
+                                    <apex:pageBlockSectionItem helpText="{!ft.LookupDataHelpText}">
+                                        <apex:outputPanel id="recordDataLabelPanel">
+                                            <apex:outputLabel rendered="{!AND(!ISBLANK(data.Info), !ISBLANK(data.Info.ReferenceFieldName))}" value="Lookup {!data.Info.ObjectLabel}" /> 
+                                        </apex:outputPanel>
+                                        <apex:outputPanel id="recordDataPanel">
+                                            <apex:inputField styleClass="{!data.Info.ReferenceId}" required="false" rendered="{!AND(!ISBLANK(data.Info), !ISBLANK(data.Info.ReferenceFieldName))}" value="{!data.Info.ChildObject[data.Info.ReferenceFieldName]}" onchange="handleLookupChange('{!JSENCODE(data.Info.ReferenceId)}');" />
+                                            <script type="text/javascript">if ({!data.Info.OverrideKeyPrefix}) handleKeyPrefixOverride('{!JSENCODE(data.Info.ReferenceId)}','{!JSENCODE(data.Info.KeyPrefix)}');</script>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem />
+                                </apex:repeat>
+                                <apex:repeat var="data" value="{!ft.relatedObjectDataList}">
+                                    <apex:pageBlockSectionItem >
+                                        <apex:outputPanel id="childRecordDataLabelPanel">
+                                            <apex:outputLabel rendered="{!!ISBLANK(data.Info)}" value="Select {!data.Info.ObjectLabel}" /> 
+                                        </apex:outputPanel>
+                                        <apex:outputPanel id="childRecordDataPanel">
+                                            <apex:selectList size="1" value="{!data.SelectedValue}" styleClass="{!data.Info.ReferenceId}" required="false" onchange="updateData('{!JSENCODE(data.Info.ReferenceId)}');">
+                                                <apex:selectOptions value="{!data.Items}" />
+                                            </apex:selectList>
+                                        </apex:outputPanel>
+                                    </apex:pageBlockSectionItem>
+                                    <apex:pageBlockSectionItem />
+                                </apex:repeat>
+                                <script type="text/javascript">(window.closePopup && window.closePopup());</script>
+                            </apex:pageBlockSection>
+                        </apex:outputPanel>
+                        <apex:outputPanel id="fieldtags">
+                            <apex:pageBlockSection title="Field Tags" columns="1">
+                                <apex:pageMessages id="fieldMessages" />
+                                <apex:pageBlockTable value="{!ft.fieldTags}" var="t">
+                                    <apex:column headerValue="Label" styleClass="selectTagCell labelCell" width="22%">
+                                        <span id="{!t.HtmlId}-_help" class="helpButton">
+                                            <span><label>{!t.Label}</label></span><apex:image value="/s.gif" alt="" styleClass="helpOrb" rendered="{!!t.formatDisabled}" />
+                                                <apex:outputPanel rendered="{!!t.formatDisabled}">
+                                                    <script type="text/javascript">sfdcPage && sfdcPage.setHelp("{!JSENCODE(t.HtmlId)}", "{!JSENCODE(t.HelpText)}")</script>
+                                                </apex:outputPanel>
+                                        </span>
+                                    </apex:column>
+                                    <apex:column headerValue="Tag" styleClass="selectTagCell tagCell">
+                                        <input class="tagInput" readonly="readonly" value="{!t.FullTag}" size="{!ft.TagInputSize}" onclick="jQuery(this).select();" />
+                                    </apex:column>
+		                            <apex:column styleClass="selectTagCell valueCell" rendered="{!!ISBLANK(ft.RelatedRecord) && ISBLANK(ft.lookupObjectField)}" width="32%">
+		                            	<apex:facet name="header">
+		               			            <span id="columnHeaderValue-_help" class="helpButton">
+		                                    	<span><label>Value</label></span><img src="/s.gif" alt="" class="helpOrb" />
+			                                    <script type="text/javascript">sfdcPage && sfdcPage.setHelp("columnHeaderValue", "{!JSENCODE(ft.ValueColumnHelpText)}")</script>
+		                            		</span>
+		                           		</apex:facet>
+		                                <apex:outputText rendered="{!t.HasMappedValue && !ISBLANK(ft.RelatedRecord)}" value="{!NULLVALUE(ft.RelatedRecord[t.OriginalFieldName], '')}" />
+		                            </apex:column>
+                                </apex:pageBlockTable>
+                            </apex:pageBlockSection>
+                        </apex:outputPanel>
+                    </apex:pageBlock>
+                </apex:actionRegion>
+            </apex:tab>
+            <apex:tab label="{!$ObjectType.Loop__DDP_File__c.labelplural}" id="ddpFiles" name="ddpFiles" rerender="pageMessages">
+                <apex:pageBlock title="{!$ObjectType.Loop__DDP__c.label} Edit" mode="edit" id="ddpFilePb" helpUrl="http://support.drawloop.com/salesforce/looplus/ddp-wizard/ddp-files/" helpTitle="Help for this Section">
+                    <apex:pageBlockButtons location="top">
+                        <apex:commandButton value="Save" onclick="return confirmSave();" id="saveBtn" action="{!save}" />
+                        <apex:commandButton value="Cancel" action="{!cancel}" immediate="true" />
+                    </apex:pageBlockButtons>
+                    <apex:pageBlockSection title="Select or Upload Documents" columns="1" id="ddpFilePbs">
+                        <apex:actionFunction name="hideMessage" action="{!hideDdpWizardMessage}" id="hideMessageFunction" />
+                        <apex:pageMessage rendered="{!showDdpWizardMessage}" severity="info" strength="1" summary="Click Add File and make folder selections before specifying files to be uploaded. If done after, file uploads will need to be reset.">
+                            <apex:commandLink value="Remove this message." style="margin-left: 8px; font-size: 80%;" onclick="hideMessage(); return false;" />
+                        </apex:pageMessage>
+                        <apex:pageBlockTable value="{!ddpFiles}" var="f" id="ddpFileTable">
+                            <apex:column headerValue="Action" styleClass="myActionColumn">
+                                <apex:commandLink value="remove" styleClass="cancelRow action" rendered="{!showDocRemoveAction}" action="{!removeDdpFile}">
+                                    <apex:param assignTo="{!selectedIndex}" name="selectedIndex" value="{!f.index}" />
+                                </apex:commandLink>
+                            </apex:column>
+                            <apex:column headerValue="" rendered="{!hasContent}">
+                                <apex:actionRegion >
+                                    <apex:selectList size="1" value="{!f.fileLocation}">
+                                        <apex:selectOption itemValue="Folder" />
+                                        <apex:selectOption itemValue="Library" />
+                                        <apex:actionSupport event="onchange" action="{!f.changeLocation}" rerender="ddpFilePbs" status="fileLocationStatus" />
+                                    </apex:selectList>
+                                    <apex:actionStatus startText="• • •" stopText="" id="fileLocationStatus" styleClass="nowrap" />
+                                </apex:actionRegion>
+                            </apex:column>
+                            <apex:column headerValue="{!$ObjectType.Folder.label}{!IF(hasContent,' / Library','')}">
+                                <apex:actionRegion >
+                                    <apex:outputPanel layout="block" styleClass="requiredInput" id="folderPanel">
+                                        <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                        <apex:selectList size="1" value="{!f.folderId}">
+                                            <apex:selectOptions value="{!f.folders}" />
+                                            <apex:actionSupport event="onchange" action="{!f.changeFolder}" rerender="ddpFilePbs" status="folderStatus" />
+                                        </apex:selectList>
+                                        <apex:actionStatus startText="• • •" stopText="" id="folderStatus" styleClass="nowrap" />
+                                    </apex:outputPanel>
+                                </apex:actionRegion>
+                            </apex:column>
+                            <apex:column headerValue="{!$ObjectType.Document.label}">
+                                <apex:actionRegion >
+                                    <apex:outputPanel id="documentPanel">
+                                        <apex:selectList id="existingFile" size="1" value="{!f.fileId}">
+                                            <apex:selectOption itemValue="" itemLabel="--Upload or Select--" />
+                                            <apex:selectOptions value="{!f.documents}" />
+                                            <apex:actionSupport event="onchange" action="{!f.changeDocument}" status="documentStatus" />
+                                        </apex:selectList>
+                                        <apex:actionStatus startText="• • •" stopText="" id="documentStatus" styleClass="nowrap" />
+                                    </apex:outputPanel>
+                                </apex:actionRegion>
+                            </apex:column>
+                            <apex:column id="uploadFileColumn">
+                                <apex:outputPanel layout="block" styleClass="requiredInput" rendered="{!f.fileId=null}">
+                                    <apex:outputPanel layout="block" styleClass="requiredBlock"></apex:outputPanel>
+                                    <apex:inputFile id="uploadFile" value="{!f.doc.Body}" filename="{!f.doc.Name}" contentType="{!f.df.Loop__Type__c}" />
+                                </apex:outputPanel>
+                            </apex:column>
+                            <apex:column headerValue="{!$ObjectType.Loop__DDP_File__c.fields.Loop__Optional__c.label}">
+                                <apex:inputField value="{!f.df.Loop__Optional__c}" />
+                            </apex:column>
+                            <apex:column headerValue="{!$ObjectType.Loop__DDP_File__c.fields.Loop__Order__c.label}">
+                                <apex:inputField value="{!f.df.Loop__Order__c}" style="width: 30px" />
+                            </apex:column>
+                        </apex:pageBlockTable>
+                        <apex:outputPanel >
+                            <apex:commandLink value="Add File" action="{!addDdpFile}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </apex:tab>
+        </apex:tabPanel>
+    </apex:form>
+</apex:page>

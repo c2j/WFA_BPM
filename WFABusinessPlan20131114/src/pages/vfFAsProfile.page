@@ -1,0 +1,102 @@
+<apex:page showHeader="false" sidebar="false" StandardController="Hobbies_Charities__c" extensions="vfFAsProfileCtrlr">
+
+<style>
+.ActionLinks {
+text-align:center;
+margin-bottom:10px;
+}
+.ActionLinks a {
+font-size:Medium;
+font-weight:bold;
+}
+
+</style>
+<script>
+
+</script>    
+    
+<apex:form id="FAsChildren">
+    <apex:pageMessages />
+    <!--<apex:detail inlineEdit="True" relatedList="True">-->
+    
+    <apex:pageBlock title="Children">
+        <!--<apex:pageblockButtons location="both">-->
+            <!--<apex:commandButton value="New Child"  action="{!AddNewChild}" onClick="launchNewChildPage();"/>-->
+        <!--</apex:pageblockButtons>--> 
+        <div class="ActionLinks">
+            <a href="/a0O/e?CF00N50000002OMzD={!ParentName}&CF00N50000002OMzD_lkid={!ContactID}&retURL=%2F{!profRecID}&saveURL=%2F{!profRecID}" target="_Parent">Add New Child</a>               
+        </div>
+        <apex:pageBlockTable value="{!Children}" var="thisChild" >
+
+                <apex:column width="50">
+                    <apex:facet name="header">Action</apex:facet>
+                    <apex:outputLink value="/{!thisChild.id}/e?retURL=%2F{!profRecID}&saveURL=%2F{!profRecID}" target="_Parent">Edit</apex:outputLink>                      
+                    <span> | </span>
+                    <a href="javascript:if (window.confirm('Are you sure?')) DeleteChild('{!thisChild.Id}');" >Del</a>
+                </apex:column>
+                <apex:column width="150">
+                    <apex:facet name="header">Child Name</apex:facet>
+                    <a href="/{!thisChild.ID}" target="_Parent">{!thisChild.Name} {!thisChild.Child_Last_Name__c}</a>
+                </apex:column>
+                <apex:column width="100">
+                    <apex:facet name="header">Relationship Type</apex:facet>
+                        {!thisChild.Relationship_Type__c}
+                </apex:column>
+                <apex:column width="50" >
+                    <apex:facet name="header">Gender</apex:facet>
+                        {!thisChild.Gender__c}
+                </apex:column>
+                <apex:column width="50">
+                    <apex:facet name="header">Age</apex:facet>
+                        {!thisChild.Child_Age__c}
+                </apex:column>                                
+                <apex:column width="75">
+                    <apex:facet name="header">Birthdate</apex:facet>
+                        <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                            <apex:param value="{!thisChild.Child_Birthdate__c}" />
+                        </apex:outputText>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Address</apex:facet>
+                        {!thisChild.Child_Address_1__c}
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">City</apex:facet>
+                        {!thisChild.Child_City__c}
+                </apex:column>  
+                <apex:column >
+                    <apex:facet name="header">State</apex:facet>
+                        {!thisChild.Child_State__c}
+                </apex:column>  
+                <apex:column width="75">
+                    <apex:facet name="header">Zipcode</apex:facet>
+                        {!thisChild.Child_Zip__c}
+                </apex:column>                                                                  
+                <apex:column >
+                    <apex:facet name="header">School</apex:facet>
+                        {!thisChild.Child_School_College__c}
+                </apex:column>                
+                                
+        </apex:pageBlockTable>
+        
+        <apex:outputpanel layout="block" rendered="{!AllowShowMore}">
+            <apex:commandLink action="{!ShowMore}">Show More></apex:commandLink>
+            <span> | </span>
+            <apex:commandLink action="{!GoToFullList}" target="_blank">Go to List ({!Children.size})>></apex:commandLink>
+        </apex:outputpanel>
+        
+        <apex:outputLabel value="No records to display" rendered="{!(ISNULL(Children))}" styleClass="noRowsHeader"></apex:outputLabel>
+        
+    </apex:pageBlock>
+   <!-- </apex:detail>-->
+    
+    <apex:actionFunction action="{!DeleteChild}" name="DeleteChild" reRender="FAsChildren" >
+       <apex:param name="ChildId" value="" assignTo="{!SelectedChildId}"/>
+    </apex:actionFunction>
+   
+    
+    
+</apex:form>
+
+
+</apex:page>

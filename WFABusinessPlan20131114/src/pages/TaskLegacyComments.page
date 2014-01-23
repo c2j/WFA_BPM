@@ -1,0 +1,23 @@
+<apex:page id="pg_legacy_task_data" showHeader="false" sidebar="false" standardController="Task" extensions="TaskLegacyCommentPopulation">
+
+	<apex:form id="frmDisplayLegacyComments">
+
+		<apex:messages /> 
+		
+		<apex:pageBlock >
+
+			<apex:pageBlockSection columns="1">
+				<table width="100%" cellspacing="0">
+				<tr width="100%">															
+						<apex:repeat value="{!CommentData}" var="tcd">
+							<td >
+								<apex:outputField value="{!tcd.Comments__c}"/> 
+							</td>
+						</apex:repeat>
+				</tr>
+			</table>
+			</apex:pageBlockSection>
+
+		</apex:pageBlock>
+	</apex:form>
+</apex:page>

@@ -1,0 +1,6 @@
+<apex:page standardController="Contact" extensions="EnvisionDashBoardURL" showHeader="false">
+    <apex:form >
+        <apex:iframe src="http://MSILSH0019V008.noam.msds.wachovia.net/FAScorecards/{!title1}.pdf"/>
+   
+    </apex:form>
+</apex:page>

@@ -1,0 +1,9 @@
+<apex:page standardController="Account" sidebar="false" showHeader="false" standardStylesheets="false">
+    <apex:stylesheet value="{!URLFOR($Resource.Style, 'styles.css')}"/>
+    <apex:dataList value="{!account.contacts}" var="item">
+        <apex:outputtext value="{!item.name}"/>
+
+    
+    </apex:dataList>
+   
+</apex:page>

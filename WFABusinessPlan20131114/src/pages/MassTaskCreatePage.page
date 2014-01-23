@@ -1,0 +1,241 @@
+<apex:page id="pg_mass_task" controller="MassTaskController" showHeader="true" sidebar="true"  tabStyle="Task">
+
+<style>
+    .textareaSSI {
+    width: 300px;
+    height: 40px;
+    }
+    
+    .textareaDetailResult {
+    width: 275px;
+    height: 100px;
+    }
+    
+    .textareaComments {
+    width: 700px;
+    height: 100px;
+    }
+</style>
+
+
+    <apex:sectionHeader id="section_header" title="Task" subtitle="New Task"/>
+
+    <apex:form id="frmSubmitMassTask">
+            
+        <apex:messages />        
+         
+        <apex:pageBlock title="New Task" mode="Edit" id="field_section" rendered="{!showPage}">      
+     
+            <!-- INTERNAL TASK PAGE LAYOUT - BEGIN-->
+            <apex:pageBlockSection title="Internal Task Information" id="sectionHeader_INT" columns="2" rendered="{!showInternal}">
+                <apex:inputField value="{!task.ownerid}" id="owner" rendered="{!NOT(assignToOwner)}"/> 
+                <apex:pageblockSectionItem rendered="{!assignToOwner}">
+                    <apex:outputLabel value="Assigned To"/>
+                    <apex:inputtext disabled="true"/>
+                </apex:pageblockSectionItem>
+                <apex:inputField value="{!task.status}" required="true" /> 
+                <apex:inputField value="{!task.subject}" required="true" />
+                <apex:inputField value="{!task.priority}" required="true" /> 
+                <apex:inputField value="{!task.Category__c}" />
+                <apex:inputField value="{!task.Sales_Strategy_Initiative__c}" styleClass="textareaSSI"/>              
+                <apex:inputField value="{!task.type}" required="true" />  
+                <apex:pageblockSectionItem /> 
+                <apex:inputField value="{!task.activityDate}" required="true"/> 
+                <apex:pageblockSectionItem />                                                      
+                <apex:pageblockSectionItem >
+                    <apex:outputLabel value="Related To:" />
+                    <apex:outputPanel >
+                        <div id='spanDisplayLabel' style='width:250px; height:150px; overflow-y:scroll;'>
+                            <apex:dataTable value="{!tableDisplayNames}" var="tableDisplayName" >
+                                <apex:column value="{!tableDisplayName}"/>
+                            </apex:dataTable>                    
+                        </div>
+                    </apex:outputPanel>               
+                </apex:pageblockSectionItem>                                      
+            </apex:pageBlockSection>           
+            
+            <apex:pageblockSection title="Select Branch" id="acctselectionINT_section" columns="1" rendered="{!showInternal}">
+                <apex:selectCheckboxes value="{!branch}" id="branches">
+                    <apex:selectOptions value="{!branches}"/>
+                </apex:selectCheckboxes>   
+            </apex:pageblockSection>           
+            
+            <apex:pageBlockSection title="Description Information" columns="2" id="sectionDescInfo_INT" rendered="{!showInternal}">
+                <apex:inputField value="{!task.Communication_Type__c}" required="true"/>   
+                <apex:pageblockSectionItem />              
+                <apex:inputField value="{!task.Discussion_Details__c}" styleClass="textareaDetailResult"/>
+                <apex:inputField value="{!task.End_Result__c}" styleClass="textareaDetailResult"/>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Comments" columns="1" id="sectionComments_INT" rendered="{!showInternal}">
+                <apex:inputField value="{!task.description}" styleClass="textareaComments"/>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection title="Envision Growth Task" columns="2" id="sectionEnvision_INT" rendered="{!showInternal}">
+                <apex:inputField value="{!task.Why_Not_More_Envision__c}" />
+                <apex:inputField value="{!task.Envision_Time__c}" />
+                <apex:inputField value="{!task.PA_Qualification_Interested__c}" />
+                <apex:inputField value="{!task.Envision_Help__c}" />
+           </apex:pageBlockSection>
+   
+            <!-- INTERNAL TASK PAGE LAYOUT - END-->
+
+            <!-- ADVISORY/PRODUCTIVITY CONSULTANT TASK PAGE LAYOUT - BEGIN-->
+            <apex:pageBlockSection title="Advisory Task Information" id="sectionHeader_ADV" columns="2" rendered="{!showProdConsultant}">
+                <apex:inputField value="{!task.ownerid}" id="owner" rendered="{!NOT(assignToOwner)}"/> 
+                <apex:pageblockSectionItem rendered="{!assignToOwner}">
+                    <apex:outputLabel value="Assigned To"/>
+                    <apex:inputtext disabled="true"/>
+                </apex:pageblockSectionItem> 
+                <apex:inputField value="{!task.status}" required="true" /> 
+                <apex:inputField value="{!task.type}" required="true" /> 
+                <apex:pageblockSectionItem />                
+                <apex:inputField value="{!task.subject}" required="true" />
+                <apex:pageblockSectionItem /> 
+                <apex:inputField value="{!task.Category__c}" />
+                <apex:pageblockSectionItem />  
+                <apex:inputField value="{!task.activityDate}" required="true"/> 
+                <apex:pageblockSectionItem />  
+                <apex:inputField value="{!task.Sales_Strategy_Initiative__c}"  styleClass="textareaSSI"/>  
+                <apex:pageblockSectionItem >
+                    <apex:outputLabel value="Related To:" />
+                    <apex:outputPanel >
+                        <div id='spanDisplayLabel' style='width:250px; height:150px; overflow-y:scroll;'>
+                            <apex:dataTable value="{!tableDisplayNames}" var="tableDisplayName" >
+                                <apex:column value="{!tableDisplayName}"/>
+                            </apex:dataTable>                    
+                        </div>
+                    </apex:outputPanel>          
+                </apex:pageblockSectionItem>                 
+            </apex:pageBlockSection>           
+            
+            <apex:pageblockSection title="Select Branch" id="acctselectionADV_section" columns="1" rendered="{!showProdConsultant}">
+                <apex:selectCheckboxes value="{!branch}" id="branches">
+                    <apex:selectOptions value="{!branches}"/>
+                </apex:selectCheckboxes>  
+            </apex:pageblockSection>  
+            
+            <apex:pageBlockSection title="Description Information" columns="1" id="sectionDescInfo_ADV" rendered="{!showProdConsultant}">                       
+                <apex:inputField value="{!task.description}" styleClass="textareaComments"/>
+            </apex:pageBlockSection>          
+            <!-- ADVISORY/PRODUCTIVITY CONSULTANT TASK PAGE LAYOUT - END-->
+            
+            <!-- RBC TASK PAGE LAYOUT - BEGIN-->
+            <apex:pageBlockSection title="RBC Task Information" id="sectionHeader_RBC" columns="2" rendered="{!showRBC}">
+                <apex:inputField value="{!task.ownerid}" id="owner" rendered="{!NOT(assignToOwner)}"/> 
+                <apex:pageblockSectionItem rendered="{!assignToOwner}">
+                    <apex:outputLabel value="Assigned To"/>
+                    <apex:inputtext disabled="true"/>
+                </apex:pageblockSectionItem>             
+                <apex:inputField value="{!task.status}" required="true" /> 
+                <apex:inputField value="{!task.type}" required="true" /> 
+                <apex:pageblockSectionItem />                
+                <apex:inputField value="{!task.subject}" required="true" />
+                <apex:pageblockSectionItem /> 
+                <apex:inputField value="{!task.Category__c}" />
+                <apex:pageblockSectionItem />  
+                <apex:inputField value="{!task.activityDate}" required="true"/> 
+                <apex:pageblockSectionItem />  
+                <apex:inputField value="{!task.Sales_Strategy_Initiative__c}"  styleClass="textareaSSI"/>                                                               
+                <apex:pageblockSectionItem >
+                    <apex:outputLabel value="Related To:" />
+                    <apex:outputPanel >
+                        <div id='spanDisplayLabel' style='width:250px; height:150px; overflow-y:scroll;'>
+                            <apex:dataTable value="{!tableDisplayNames}" var="tableDisplayName" >
+                                <apex:column value="{!tableDisplayName}"/>
+                            </apex:dataTable>                    
+                        </div>
+                    </apex:outputPanel>               
+                </apex:pageblockSectionItem>
+            </apex:pageBlockSection>            
+            
+            <apex:pageblockSection title="Select Branch" id="acctselectionRBC_section" columns="1" rendered="{!showRBC}">
+                <apex:selectCheckboxes value="{!branch}" id="branches">
+                    <apex:selectOptions value="{!branches}"/>
+                </apex:selectCheckboxes>  
+            </apex:pageblockSection>     
+                   
+            <apex:pageBlockSection title="Description Information" columns="1" id="sectionDescInfo_RBC" rendered="{!showRBC}">                      
+                <apex:inputField value="{!task.description}" required="true" styleClass="textareaComments"/>                 
+            </apex:pageBlockSection>
+            <!-- RBC TASK PAGE LAYOUT - END-->
+
+            <br/>
+            <br/>
+            <apex:inputCheckbox value="{!sendNotificationEmailCheckBox}" id="sendNotificationEmailCheckBox" /> Send Notification Email
+        
+            <apex:pageblockSection title="Reminder" id="reminder_section" columns="1">
+                <apex:pageBlockSectionItem id="isRemSet">
+                    <apex:outputLabel value="Reminder" for="task__IsReminderSet" />
+                    <apex:pageBlockSectionItem id="reminder_section_1">
+                        <apex:inputField id="task__IsReminderSet" value="{!task.IsReminderSet}" onclick="togglereminder(this.checked);" />
+                        <apex:pageBlockSectionItem id="reminder_section_1">
+                            <apex:inputField id="task__ListDate" value="{!contact.Birthdate}"/>
+                            <apex:selectList id="task__ListTime" value="{!reminderTime}" size="1" styleclass="FormDataASmaller">
+                                <apex:selectOptions id="reminder_time_options" value="{!selReminderOptions}" />
+                            </apex:selectList>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSectionItem>                
+            </apex:pageblockSection>           
+            
+            <apex:pageblockSection title="System Information" id="sysinfo_section" columns="2">
+                <apex:outputField value="{!task.recordTypeId}" /> 
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="Mass Task?" />
+                    <apex:inputCheckbox value="{!task.Mass_Task__c}" selected="true" disabled="true" />   
+                </apex:pageblocksectionitem> 
+            </apex:pageblockSection>
+            
+            <apex:pageblockButtons id="blockButtons">
+                <apex:commandButton value="Save" action="{!save}" id="btnSave" />
+                <apex:commandButton value="Cancel" action="{!back}" immediate="true" id="btnCancel"/>
+            </apex:pageblockButtons>
+            
+        </apex:pageBlock>
+    </apex:form>
+    <script type="text/javascript">
+        function assignUser(){
+            var objCtr = document.getElementById('pg_mass_task:frmSubmitMassTask:field_section:section01:owner');
+            objCtr.disabled = true;
+            objCtr = document.getElementById('pg_mass_task:frmSubmitMassTask:field_section:section01:owner_lkwgt');
+            objCtr.disabled = true;            
+        }
+        function togglereminder(blnStatus){
+            if(blnStatus){
+                var objCtr = document.getElementById('pg_mass_task:frmSubmitMassTask:field_section:reminder_section:isRemSet:reminder_section_1:reminder_section_1:task__ListDate');
+                objCtr.disabled = false;
+                objCtr = document.getElementById('pg_mass_task:frmSubmitMassTask:field_section:reminder_section:isRemSet:reminder_section_1:reminder_section_1:task__ListTime');
+                objCtr.disabled = false;                
+            }else{
+                var objCtr = document.getElementById('pg_mass_task:frmSubmitMassTask:field_section:reminder_section:isRemSet:reminder_section_1:reminder_section_1:task__ListDate');
+                objCtr.disabled = true;   
+                objCtr = document.getElementById('pg_mass_task:frmSubmitMassTask:field_section:reminder_section:isRemSet:reminder_section_1:reminder_section_1:task__ListTime');
+                objCtr.disabled = true;                           
+            }
+        }
+        togglereminder(false);
+        
+        function getFieldByID(strControlID){return document.getElementById(strControlID);}
+        
+        function adjustDisplayArea(){
+            try{
+                var objControlFake = getFieldByID('spanPlaceHolder') ;
+                if (objControlFake.offsetParent) {
+                    var objControl = getFieldByID('spanDisplayLabel') ;
+                    objControl.style.height = '90px';
+                    objControl.style.position = 'absolute';
+                    objControl.style.left = objControlFake.offsetLeft + 'px';
+                    objControl.style.top= objControlFake.offsetTop + 'px';
+                }  
+            }catch(e){}
+        }
+        adjustDisplayArea();
+        window.onresize = function(){
+            adjustDisplayArea();
+            setTimeout('adjustDisplayArea();',300);
+            setTimeout('adjustDisplayArea();',500);
+            setTimeout('adjustDisplayArea();',1000);
+        }        
+    </script>
+</apex:page>

@@ -1,0 +1,58 @@
+<apex:page showHeader="false" sidebar="false" controller="vfSubmissionConfirmationCtrlr">
+
+<script language="javascript" type="text/javascript">
+
+function Open_Win(RedirectPage) {
+ 
+    window.open(RedirectPage,"_parent");
+}
+
+window.onload = function () {
+//alert('hello');
+var RedirectPage = '{!RedirectPage}';
+
+    if (RedirectPage != "") {    
+        window.setInterval(function(){Open_Win(RedirectPage)}, 1500);
+    }
+}
+
+
+</script>
+<style>
+
+#Confirmation {
+-webkit-user-select: none;
+-moz-user-select: none;
+user-select: none;
+-moz-border-radius-topleft: 5px;
+-moz-border-radius-topright: 5px;
+-moz-border-radius-bottomright: 5px;
+-moz-border-radius-bottomleft: 5px;
+border-top-left-radius:5px;
+border-top-right-radius: 5px;
+border-bottom-right-radius: 5px;
+border-bottom-left-radius: 5px; 
+background: #8f8f8f; /* old browsers */
+background: -moz-linear-gradient(bottom, #8f8f8f 0%, #cacaca 100%); /* firefox *///
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#8f8f8f), color-stop(100%,#cacaca)); /* webkit */
+
+color:#FFFFFF;
+font-size:150%;
+font-family:Georgia;
+width:700px;
+height:100px;
+padding:20px;
+text-align:center;
+margin:10% auto auto auto;
+
+</style>
+<apex:form >
+
+<div id="Confirmation">
+<h1>Thank you for your submission.</h1>
+<br/><br/>
+<h3>{!ConfirmationText}</h3>
+</div>
+    
+</apex:form>
+</apex:page>
